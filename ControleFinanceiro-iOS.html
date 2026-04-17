@@ -84,7 +84,7 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .conta-nome{font-weight:600;font-size:15px;flex:1;min-width:0;word-break:break-word}
 .conta-valor{font-family:'SF Mono',Menlo,monospace;font-size:16px;font-weight:700;white-space:nowrap}
 .conta-sub{font-size:11px;color:var(--orange);display:flex;align-items:center;gap:5px}
-.conta-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.conta-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:24px}
 .sbadge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;white-space:nowrap}
 .s-aberto{background:var(--red-bg);color:var(--red)}
 .s-pago{background:var(--green-bg);color:var(--green)}
@@ -95,8 +95,8 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .tipo-tag{font-size:11px;color:var(--sub);padding:2px 8px;border-radius:6px;background:var(--surface3)}
 .venc-tag{font-size:11px;color:var(--sub)}
 .na{color:var(--muted);font-size:12px}
-.conta-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
-.act-btn{padding:7px 13px;border-radius:9px;border:1px solid transparent;font-size:12px;font-weight:600;cursor:pointer;flex:1;min-width:70px;transition:transform .1s}
+.conta-acts{display:flex;gap:5px;flex-wrap:nowrap;margin-top:4px}
+.act-btn{padding:7px 6px;border-radius:9px;border:1px solid transparent;font-size:11px;font-weight:600;cursor:pointer;flex:1;min-width:0;transition:transform .1s;white-space:nowrap;text-align:center}
 .act-btn:active{transform:scale(.95)}
 .act-pay{background:var(--green-bg);color:var(--green);border-color:rgba(52,211,153,.3)}
 .act-edit{background:var(--blue-bg);color:var(--blue);border-color:rgba(96,165,250,.3)}
@@ -224,6 +224,29 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .install-hint{display:none;position:fixed;bottom:calc(20px + var(--safe-bot));left:16px;right:16px;background:var(--surface);border:1px solid var(--blue);border-radius:var(--r);padding:14px;box-shadow:var(--sh2);z-index:500;align-items:center;gap:10px;font-size:13px}
 .install-hint.show{display:flex}
 .install-hint-close{background:var(--surface3);border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;color:var(--sub);flex-shrink:0}
+
+.contas-btn{width:100%;padding:18px;border-radius:var(--r);background:linear-gradient(135deg,rgba(96,165,250,.15),rgba(167,139,250,.15));border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:transform .1s;color:var(--text);font-family:inherit}
+.contas-btn:active{transform:scale(.98)}
+.contas-btn-left{display:flex;align-items:center;gap:12px}
+.contas-btn-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--violet));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.contas-btn-text{text-align:left}
+.contas-btn-title{font-size:15px;font-weight:700;margin-bottom:2px}
+.contas-btn-sub{font-size:12px;color:var(--sub)}
+.contas-btn-arrow{font-size:20px;color:var(--sub)}
+.contas-counters{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.cc-pill{padding:4px 9px;border-radius:99px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.cc-aberto{background:var(--red-bg);color:var(--red)}
+.cc-pago{background:var(--green-bg);color:var(--green)}
+.cc-terceiros{background:var(--yellow-bg);color:var(--yellow)}
+.cc-postergado{background:var(--orange-bg);color:var(--orange)}
+.contas-btn-full{display:flex;flex-direction:column;align-items:stretch;gap:0}
+.contas-btn-full .contas-btn-top{display:flex;align-items:center;justify-content:space-between;width:100%}
+
+/* Modal de contas em tela cheia */
+#m-contas .modal{max-width:540px;max-height:94vh;padding-bottom:calc(20px + var(--safe-bot))}
+.contas-modal-actions{display:flex;gap:8px;margin-bottom:12px}
+.contas-modal-actions .mbtn{flex:1;padding:11px}
+
 </style>
 </head>
 <body>
@@ -248,6 +271,35 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 </div>
 
 <!-- ══════════════════ MODAIS ══════════════════ -->
+
+<!-- Modal: Lista de Contas -->
+<div class="overlay" id="m-contas">
+  <div class="modal">
+    <div class="modal-grab"></div>
+    <div class="modal-head"><span class="modal-title">💼 Minhas Contas <span class="pill" id="lbl-count" style="margin-left:6px">0</span></span><button class="modal-x" onclick="closeM('m-contas')">✕</button></div>
+    <div class="mform">
+      <div class="contas-modal-actions">
+        <button class="mbtn mbtn-primary" onclick="openM('m-add')">＋ Nova Conta</button>
+      </div>
+      <div class="filter-bar">
+        <button class="flt on" data-f="todas" onclick="setFiltro('todas',this)">Todas</button>
+        <button class="flt" data-f="aberto" onclick="setFiltro('aberto',this)">🔴 Aberto</button>
+        <button class="flt" data-f="pago" onclick="setFiltro('pago',this)">🟢 Pagas</button>
+        <button class="flt" data-f="terceiros" onclick="setFiltro('terceiros',this)">🟡 Terc.</button>
+        <button class="flt" data-f="postergado" onclick="setFiltro('postergado',this)">🟠 Posterg.</button>
+      </div>
+      <div class="sort-bar">
+        <span class="sort-label">Ordenar</span>
+        <button class="sort-chip on" data-s="status" onclick="sortBy('status')">Status</button>
+        <button class="sort-chip" data-s="nome" onclick="sortBy('nome')">Nome</button>
+        <button class="sort-chip" data-s="valor" onclick="sortBy('valor')">Valor</button>
+        <button class="sort-chip" data-s="venc" onclick="sortBy('venc')">Vencimento</button>
+        <button class="sort-chip" data-s="parcela" onclick="sortBy('parcela')">Parcela</button>
+      </div>
+      <div class="contas-list" id="contas-list"></div>
+    </div>
+  </div>
+</div>
 
 <!-- Menu -->
 <div class="overlay" id="m-menu">
@@ -424,7 +476,7 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
     <button class="menu-btn" onclick="openM('m-menu')">☰</button>
   </div>
   <div class="action-bar">
-    <button class="ab-btn ab-primary" onclick="openM('m-add')">＋ Conta</button>
+    <button class="ab-btn ab-primary" onclick="openContasModal()">💼 Contas</button>
     <button class="ab-btn ab-success" onclick="openM('m-entrada')">＋ Entrada</button>
     <button class="ab-btn ab-ghost" onclick="openBackupManager()">💾 Backups</button>
     <button class="ab-btn ab-ghost" onclick="showConfirmFechar()">📅 Fechar Mês</button>
@@ -435,32 +487,23 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 <main id="main-page" style="display:none">
   <div class="page">
 
-    <!-- Tabela -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title"><span class="dot dot-v"></span>Contas</div>
-        <span class="pill" id="lbl-count">0</span>
+    <!-- Botão que abre modal de Contas -->
+    <button class="contas-btn contas-btn-full" onclick="openContasModal()">
+      <div class="contas-btn-top">
+        <div class="contas-btn-left">
+          <div class="contas-btn-icon">💼</div>
+          <div class="contas-btn-text">
+            <div class="contas-btn-title">Minhas Contas</div>
+            <div class="contas-btn-sub" id="contas-btn-sub">Carregando…</div>
+          </div>
+        </div>
+        <span class="contas-btn-arrow">›</span>
       </div>
-      <div class="filter-bar">
-        <button class="flt on" data-f="todas" onclick="setFiltro('todas',this)">Todas</button>
-        <button class="flt" data-f="aberto" onclick="setFiltro('aberto',this)">🔴 Aberto</button>
-        <button class="flt" data-f="pago" onclick="setFiltro('pago',this)">🟢 Pagas</button>
-        <button class="flt" data-f="terceiros" onclick="setFiltro('terceiros',this)">🟡 Terceiros</button>
-        <button class="flt" data-f="postergado" onclick="setFiltro('postergado',this)">🟠 Posterg.</button>
-      </div>
-      <div class="sort-bar">
-        <span class="sort-label">Ordenar</span>
-        <button class="sort-chip on" data-s="status" onclick="sortBy('status')">Status</button>
-        <button class="sort-chip" data-s="nome" onclick="sortBy('nome')">Nome</button>
-        <button class="sort-chip" data-s="valor" onclick="sortBy('valor')">Valor</button>
-        <button class="sort-chip" data-s="venc" onclick="sortBy('venc')">Vencimento</button>
-        <button class="sort-chip" data-s="parcela" onclick="sortBy('parcela')">Parcela</button>
-      </div>
-      <div class="contas-list" id="contas-list"></div>
-      <div class="confirm-box" id="confirm-box">
-        <p>⚠️ Fechar o mês de <strong><span id="conf-mes"></span></strong>.<br>O histórico será gravado e as contas recorrentes replicadas. <strong>Ação irreversível.</strong></p>
-        <div style="display:flex;gap:8px"><button class="mbtn mbtn-ghost" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:600" onclick="hideConfirmFechar()">Cancelar</button><button class="mbtn mbtn-danger" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:600" onclick="fecharMes()">Confirmar</button></div>
-      </div>
+      <div class="contas-counters" id="contas-counters"></div>
+    </button>
+    <div class="confirm-box" id="confirm-box">
+      <p>⚠️ Fechar o mês de <strong><span id="conf-mes"></span></strong>.<br>O histórico será gravado e as contas recorrentes replicadas. <strong>Ação irreversível.</strong></p>
+      <div style="display:flex;gap:8px"><button class="mbtn mbtn-ghost" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:600" onclick="hideConfirmFechar()">Cancelar</button><button class="mbtn mbtn-danger" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:600" onclick="fecharMes()">Confirmar</button></div>
     </div>
 
     <!-- Resumo -->
@@ -643,6 +686,31 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+
+function openContasModal() {
+  openM('m-contas');
+  renderTabela();
+  updateSortIcons();
+}
+
+function renderContasBtn() {
+  let ab=0, pa=0, te=0, po=0;
+  for (const c of S.contas) {
+    if (c.status==='aberto') ab++;
+    else if (c.status==='pago') pa++;
+    else if (c.status==='terceiros') te++;
+    else if (c.status==='postergado') po++;
+  }
+  const total = S.contas.length;
+  document.getElementById('contas-btn-sub').textContent = total===0 ? 'Nenhuma conta cadastrada' : total + (total===1?' conta cadastrada':' contas cadastradas');
+  const counters = [];
+  if (ab) counters.push(`<span class="cc-pill cc-aberto">🔴 ${ab} aberto${ab>1?'s':''}</span>`);
+  if (po) counters.push(`<span class="cc-pill cc-postergado">🟠 ${po} posterg.</span>`);
+  if (te) counters.push(`<span class="cc-pill cc-terceiros">🟡 ${te} terceiros</span>`);
+  if (pa) counters.push(`<span class="cc-pill cc-pago">🟢 ${pa} pago${pa>1?'s':''}</span>`);
+  document.getElementById('contas-counters').innerHTML = counters.join('');
+}
+
 function showApp() {
   document.getElementById('login-screen').classList.remove('show');
   document.getElementById('topbar').style.display = '';
@@ -792,6 +860,7 @@ function renderAll() {
   if (!S) return;
   if (S.sortCol) { sortCol = S.sortCol; sortDir = S.sortDir || 'asc'; }
   document.getElementById('badge-comp').textContent = compBadge(S.comp);
+  renderContasBtn();
   renderTabela();
   renderResumo();
   renderAlertas();
@@ -821,9 +890,9 @@ function renderTabela() {
     if (c.status === 'aberto') {
       acts = `
         <button class="act-btn act-pay" onclick="openPagar('${c.id}')">Pagar</button>
-        <button class="act-btn act-edit" onclick="openEdit('${c.id}')">Editar</button>
         <button class="act-btn act-post" onclick="openPost('${c.id}')">Posterg.</button>
-        <button class="act-btn act-del" onclick="delConta('${c.id}')">Excluir</button>`;
+        <button class="act-btn act-del" onclick="delConta('${c.id}')">Excluir</button>
+        <button class="act-btn act-edit" onclick="openEdit('${c.id}')">Editar</button>`;
     } else {
       acts = `
         <button class="act-btn act-open" onclick="reabrirConta('${c.id}')">Reabrir</button>
@@ -898,7 +967,8 @@ function renderAlertas() {
 }
 
 function renderLog() {
-  document.getElementById('log-wrap').innerHTML = (S.log||[]).map(e =>
+  const logs = (S.log||[]).slice(0, 5);
+  document.getElementById('log-wrap').innerHTML = logs.map(e =>
     `<div class="log-item"><span class="ldot ${e.cor||'g'}"></span><span>${e.msg}</span><span class="ltime">${e.ts}</span></div>`
   ).join('');
 }

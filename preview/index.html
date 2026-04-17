@@ -240,6 +240,9 @@ input.invalid,select.invalid{border-color:var(--red)!important;background:var(--
 .field-err{display:none;color:var(--red);font-size:11px;margin-top:4px;font-weight:500}
 .field-err.show{display:block}
 
+/* app version badge */
+.app-version{margin-top:18px;text-align:center;font-size:10px;color:var(--muted);letter-spacing:.5px;font-family:'SF Mono',Menlo,monospace;opacity:.7}
+
 .contas-btn{width:100%;padding:18px;border-radius:var(--r);background:linear-gradient(135deg,rgba(96,165,250,.15),rgba(167,139,250,.15));border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:transform .1s;color:var(--text);font-family:inherit}
 .contas-btn:active{transform:scale(.98)}
 .contas-btn-left{display:flex;align-items:center;gap:12px}
@@ -282,6 +285,7 @@ input.invalid,select.invalid{border-color:var(--red)!important;background:var(--
       <div class="err-msg" id="login-err">Senha incorreta. Tente novamente.</div>
       <button class="mbtn mbtn-primary" id="btn-login" style="padding:13px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--blue),var(--violet))" data-act="doLogin">Entrar</button>
     </div>
+    <div class="app-version" id="app-version" aria-label="Versão do app"></div>
   </div>
 </div>
 
@@ -586,6 +590,8 @@ input.invalid,select.invalid{border-color:var(--red)!important;background:var(--
 //   CONTROLE FINANCEIRO — iOS Edition · IndexedDB + Single File
 // ═══════════════════════════════════════════════════════════════════════════
 
+const APP_VERSION = 'v2.0-preview';
+const APP_BUILD = '2026-04-17';
 const DB_NAME = 'cfp_ios_db';
 const DB_VER = 1;
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -720,6 +726,8 @@ async function verificaSenha(senha) {
 // ─── INIT ─────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
   try {
+    const vEl = document.getElementById('app-version');
+    if (vEl) vEl.textContent = APP_VERSION + ' · ' + APP_BUILD;
     db = await openDB();
     // Seed senha padrão se não existir
     const pwd = await getSavedPwd();

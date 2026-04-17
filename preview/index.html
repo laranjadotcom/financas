@@ -78,8 +78,9 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .pill{background:var(--surface3);padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500;color:var(--sub)}
 
 /* ── FILTROS ── */
-.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.flt{padding:7px 13px;border-radius:99px;border:1px solid var(--border);background:var(--surface2);font-size:12px;font-weight:600;cursor:pointer;color:var(--sub);transition:all .15s}
+.filter-bar{display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;margin-bottom:12px;padding-bottom:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.filter-bar::-webkit-scrollbar{display:none}
+.flt{padding:7px 13px;border-radius:99px;border:1px solid var(--border);background:var(--surface2);font-size:12px;font-weight:600;cursor:pointer;color:var(--sub);white-space:nowrap;flex-shrink:0;transition:all .15s}
 .flt.on{background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;border-color:transparent}
 .flt:active{transform:scale(.95)}
 
@@ -99,7 +100,6 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .pbadge{background:var(--blue-bg);color:var(--blue);border-radius:99px;padding:2px 9px;font-size:11px;font-weight:600;font-family:'SF Mono',Menlo,monospace}
 .auto-badge{background:var(--violet);color:#fff;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;letter-spacing:.3px}
 .tipo-tag{font-size:11px;color:var(--sub);padding:2px 8px;border-radius:6px;background:var(--surface3)}
-.cat-tag{font-size:11px;color:var(--violet);padding:2px 8px;border-radius:6px;background:var(--violet-bg);font-weight:500}
 .venc-tag{font-size:11px;color:var(--sub)}
 .na{color:var(--muted);font-size:12px}
 .conta-acts{display:flex;gap:5px;flex-wrap:nowrap;margin-top:4px}
@@ -303,7 +303,7 @@ input.invalid,select.invalid{border-color:var(--red)!important;background:var(--
         <button class="mbtn mbtn-primary" data-act="openM" data-target="m-add">＋ Nova Conta</button>
       </div>
       <div class="fgrp" style="margin-bottom:12px">
-        <input id="conta-search" type="search" placeholder="🔍 Buscar por nome ou categoria..." aria-label="Buscar contas">
+        <input id="conta-search" type="search" placeholder="🔍 Buscar por nome..." aria-label="Buscar contas">
       </div>
       <div class="filter-bar">
         <button class="flt on" data-f="todas" data-act="filter">Todas</button>
@@ -312,7 +312,6 @@ input.invalid,select.invalid{border-color:var(--red)!important;background:var(--
         <button class="flt" data-f="terceiros" data-act="filter">🟡 Terc.</button>
         <button class="flt" data-f="postergado" data-act="filter">🟠 Posterg.</button>
       </div>
-      <div class="filter-bar" id="cat-filter-bar"></div>
       <div class="sort-bar">
         <span class="sort-label">Ordenar</span>
         <button class="sort-chip on" data-s="status" data-act="sort">Status</button>
@@ -352,7 +351,6 @@ input.invalid,select.invalid{border-color:var(--red)!important;background:var(--
       <div class="fgrp"><label>Valor (R$) — vazio = N/A</label><input id="a-valor" type="number" placeholder="0,00" step="0.01" min="0" inputmode="decimal"><div class="field-err" id="err-a-valor"></div></div>
       <div class="fgrp"><label>Vencimento</label><input id="a-venc" type="date"><div class="field-err" id="err-a-venc"></div></div>
       <div class="fgrp"><label>Tipo</label><select id="a-tipo"><option>Fixa</option><option>Var.</option><option>Eventual</option></select></div>
-      <div class="fgrp"><label>Categoria</label><select id="a-categoria"></select></div>
       <div class="fgrp"><label>Parcela — vazio = N/A</label><input id="a-parcela" type="text" placeholder="Ex: 1/12, Acumulado"></div>
       <div class="fgrp"><label>Débito automático</label><select id="a-debito"><option value="Sim">Sim</option><option value="Não" selected>Não</option></select></div>
       <div class="fgrp"><label>Recorrente (replica todo mês)?</label><select id="a-rec"><option value="true">Sim</option><option value="false">Não</option></select></div>
@@ -410,7 +408,6 @@ input.invalid,select.invalid{border-color:var(--red)!important;background:var(--
       <div class="fgrp"><label>Conta</label><input id="ed-nome" type="text" disabled></div>
       <div class="fgrp"><label>Valor (R$)</label><input id="ed-valor" type="number" step="0.01" min="0" inputmode="decimal"><div class="field-err" id="err-ed-valor"></div></div>
       <div class="fgrp"><label>Vencimento</label><input id="ed-venc" type="date"><div class="field-err" id="err-ed-venc"></div></div>
-      <div class="fgrp"><label>Categoria</label><select id="ed-categoria"></select></div>
       <div class="fgrp"><label>Parcela — vazio = N/A</label><input id="ed-parcela" type="text" placeholder="Ex: 1/12"></div>
       <input type="hidden" id="ed-id">
       <div class="modal-acts"><button class="mbtn mbtn-ghost" data-act="closeM">Cancelar</button><button class="mbtn mbtn-primary" data-primary="1" data-act="doEdit">Salvar</button></div>
@@ -600,20 +597,18 @@ input.invalid,select.invalid{border-color:var(--red)!important;background:var(--
 //   CONTROLE FINANCEIRO — iOS Edition · IndexedDB + Single File
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = 'v4.0-preview';
+const APP_VERSION = 'v4.1-preview';
 const APP_BUILD = '2026-04-17';
 const DB_NAME = 'cfp_ios_db';
 const DB_VER = 1;
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const MESES_CURTOS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const STATUS_ORDER = {aberto:0,postergado:1,terceiros:2,pago:3};
-const CATEGORIAS = ['Moradia','Alimentação','Transporte','Saúde','Educação','Lazer','Trabalho','Assinaturas','Outros'];
-const CAT_DEFAULT = 'Outros';
 const MAX_BACKUPS = 30;
 
 let db = null;
 let S = null;
-let sortCol = 'status', sortDir = 'asc', filtroAtivo = 'todas', filtroCat = 'todas', buscaTermo = '';
+let sortCol = 'status', sortDir = 'asc', filtroAtivo = 'todas', buscaTermo = '';
 
 // ─── IndexedDB ────────────────────────────────────────────
 function openDB() {
@@ -685,10 +680,6 @@ async function loadState() {
   if (!S.log) S.log = [];
   if (!S.contas) S.contas = [];
   if (!S.historico) S.historico = [];
-  // Migração: garante categoria em contas antigas
-  let migrated = 0;
-  for (const c of S.contas) if (!c.categoria) { c.categoria = CAT_DEFAULT; migrated++; }
-  if (migrated) await saveState();
 }
 
 async function saveState() {
@@ -995,10 +986,9 @@ function renderTabela() {
   const wrap = document.getElementById('contas-list');
   let list = S.contas;
   if (filtroAtivo !== 'todas') list = list.filter(c => c.status === filtroAtivo);
-  if (filtroCat !== 'todas') list = list.filter(c => (c.categoria||CAT_DEFAULT) === filtroCat);
   if (buscaTermo) {
     const t = buscaTermo.toLowerCase();
-    list = list.filter(c => (c.nome||'').toLowerCase().includes(t) || (c.categoria||'').toLowerCase().includes(t));
+    list = list.filter(c => (c.nome||'').toLowerCase().includes(t));
   }
   list = applySort(list);
   document.getElementById('lbl-count').textContent = list.length + (list.length===1?' conta':' contas');
@@ -1035,7 +1025,6 @@ function renderTabela() {
       <div class="conta-meta">
         <span class="sbadge ${s.cls}">${s.lbl}</span>
         <span class="tipo-tag">${esc(c.tipo)}</span>
-        <span class="cat-tag">${esc(c.categoria||CAT_DEFAULT)}</span>
         <span class="venc-tag">📅 ${fmtD(c.venc)}</span>
         ${pH}
         ${dH}
@@ -1131,8 +1120,7 @@ async function doAddConta() {
   const parc = document.getElementById('a-parcela').value.trim() || 'N/A';
   const deb = document.getElementById('a-debito').value;
   const rec = document.getElementById('a-rec').value === 'true';
-  const cat = document.getElementById('a-categoria').value || CAT_DEFAULT;
-  S.contas.push({id:uid(),nome,valor,venc,tipo,categoria:cat,parcela:parc,debito:deb,rec,status:'aberto',isPostCopia:false,postOrigId:null,postCancelada:false,pendingCopia:null});
+  S.contas.push({id:uid(),nome,valor,venc,tipo,parcela:parc,debito:deb,rec,status:'aberto',isPostCopia:false,postOrigId:null,postCancelada:false,pendingCopia:null});
   addLog('Conta adicionada: ' + nome, 'g');
   ['a-nome','a-valor','a-venc','a-parcela'].forEach(i => document.getElementById(i).value = '');
   closeM('m-add');
@@ -1223,7 +1211,6 @@ function openEdit(id) {
   document.getElementById('ed-id').value = id;
   document.getElementById('ed-valor').value = c.valor!=null ? c.valor : '';
   document.getElementById('ed-venc').value = c.venc || '';
-  document.getElementById('ed-categoria').value = c.categoria || CAT_DEFAULT;
   document.getElementById('ed-parcela').value = (c.parcela && c.parcela!=='N/A') ? c.parcela : '';
   openM('m-edit');
 }
@@ -1235,7 +1222,6 @@ async function doEdit() {
   const c = S.contas.find(x => x.id===id); if(!c) return;
   c.valor = +(+vr).toFixed(2);
   c.venc = document.getElementById('ed-venc').value || null;
-  c.categoria = document.getElementById('ed-categoria').value || CAT_DEFAULT;
   c.parcela = document.getElementById('ed-parcela').value.trim() || 'N/A';
   addLog('Conta editada: ' + c.nome, 'b');
   closeM('m-edit');
@@ -1647,7 +1633,6 @@ const ACTIONS = {
   menuSenha:     () => { closeM('m-menu'); setTimeout(() => openM('m-pwd'), 300); },
   menuReset:     () => { closeM('m-menu'); setTimeout(() => openM('m-reset'), 300); },
   menuLogout:    () => { closeM('m-menu'); setTimeout(doLogout, 300); },
-  filterCat:     el => setFiltroCatEl(el),
   hideHint:      () => { const el = document.getElementById('install-hint'); if (el) el.classList.remove('show'); localStorage.setItem('cfp_hint_shown','1'); },
 };
 
@@ -1697,8 +1682,6 @@ if (document.readyState === 'loading') {
 // ─── UI init (categorias, busca, ARIA) ─────────────────────
 function initUI() {
   bindValidations();
-  fillCategorias();
-  renderCatFilter();
   bindBusca();
   // ARIA em modais
   document.querySelectorAll('.overlay').forEach(o => {
@@ -1711,29 +1694,6 @@ function initUI() {
       o.setAttribute('aria-labelledby', title.id);
     }
   });
-}
-
-function fillCategorias() {
-  const opts = CATEGORIAS.map(c => '<option>' + esc(c) + '</option>').join('');
-  ['a-categoria','ed-categoria'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = opts; });
-}
-
-function renderCatFilter() {
-  const el = document.getElementById('cat-filter-bar');
-  if (!el) return;
-  const items = ['todas', ...CATEGORIAS];
-  el.innerHTML = items.map(c => {
-    const label = c === 'todas' ? 'Todas categorias' : esc(c);
-    const cls = 'flt' + (filtroCat === c ? ' on' : '');
-    return '<button class="' + cls + '" data-cat="' + esc(c) + '" data-act="filterCat">' + label + '</button>';
-  }).join('');
-}
-
-function setFiltroCatEl(el) {
-  filtroCat = el.dataset.cat || 'todas';
-  document.querySelectorAll('#cat-filter-bar .flt').forEach(b => b.classList.remove('on'));
-  el.classList.add('on');
-  renderTabela();
 }
 
 function bindBusca() {
@@ -1775,9 +1735,9 @@ function downloadBlob(content, filename, mime='text/csv;charset=utf-8') {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function exportContasCSV() {
-  const h = ['Nome','Valor','Vencimento','Tipo','Categoria','Parcela','Status','Débito','Recorrente'];
+  const h = ['Nome','Valor','Vencimento','Tipo','Parcela','Status','Débito','Recorrente'];
   const rows = [h, ...S.contas.map(c => [
-    c.nome, c.valor ?? '', c.venc ?? '', c.tipo, c.categoria || CAT_DEFAULT,
+    c.nome, c.valor ?? '', c.venc ?? '', c.tipo,
     c.parcela || 'N/A', c.status, c.debito, c.rec ? 'Sim' : 'Não'
   ])];
   const csv = rows.map(r => r.map(csvEscape).join(';')).join('\n');

@@ -1,8 +1,8 @@
 // Service Worker — Controle Financeiro (preview)
 // Cache name é versionado: a cada release, bumpar a constante VERSION no index.html
 // também deve bumpar CACHE_VERSION aqui pra garantir update do shell.
-const CACHE_VERSION = 'v4.1';
-const CACHE = 'cfp-preview-' + CACHE_VERSION;
+const CACHE_VERSION = 'v5.0';
+const CACHE = 'cfp-' + CACHE_VERSION;
 const SHELL = [
   './',
   './index.html',

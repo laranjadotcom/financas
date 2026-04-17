@@ -1,7 +1,7 @@
 {
-  "name": "Controle Financeiro (preview)",
+  "name": "Controle Financeiro",
   "short_name": "Finanças",
-  "description": "Controle financeiro pessoal — versão preview em homologação.",
+  "description": "Controle financeiro pessoal — aplicativo web offline-first.",
   "lang": "pt-BR",
   "dir": "ltr",
   "start_url": "./",

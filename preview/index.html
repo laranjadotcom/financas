@@ -230,6 +230,16 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .install-hint.show{display:flex}
 .install-hint-close{background:var(--surface3);border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;color:var(--sub);flex-shrink:0}
 
+/* spinner + loading */
+.spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.2);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#m-loading{z-index:20000}
+
+/* validation errors */
+input.invalid,select.invalid{border-color:var(--red)!important;background:var(--red-bg)!important}
+.field-err{display:none;color:var(--red);font-size:11px;margin-top:4px;font-weight:500}
+.field-err.show{display:block}
+
 .contas-btn{width:100%;padding:18px;border-radius:var(--r);background:linear-gradient(135deg,rgba(96,165,250,.15),rgba(167,139,250,.15));border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:transform .1s;color:var(--text);font-family:inherit}
 .contas-btn:active{transform:scale(.98)}
 .contas-btn-left{display:flex;align-items:center;gap:12px}
@@ -266,11 +276,11 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
       <div class="fgrp">
         <div class="pwd-wrap">
           <input type="password" id="l-senha" placeholder="••••••" autocomplete="current-password" inputmode="numeric">
-          <button class="pwd-eye" type="button" onclick="toggleEye('l-senha',this)">👁</button>
+          <button class="pwd-eye" type="button" data-act="toggleEye" data-target="l-senha">👁</button>
         </div>
       </div>
       <div class="err-msg" id="login-err">Senha incorreta. Tente novamente.</div>
-      <button class="mbtn mbtn-primary" id="btn-login" style="padding:13px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--blue),var(--violet))" onclick="doLogin()">Entrar</button>
+      <button class="mbtn mbtn-primary" id="btn-login" style="padding:13px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--blue),var(--violet))" data-act="doLogin">Entrar</button>
     </div>
   </div>
 </div>
@@ -281,25 +291,25 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 <div class="overlay" id="m-contas">
   <div class="modal">
     <div class="modal-grab"></div>
-    <div class="modal-head"><span class="modal-title">💼 Minhas Contas <span class="pill" id="lbl-count" style="margin-left:6px">0</span></span><button class="modal-x" onclick="closeM('m-contas')">✕</button></div>
+    <div class="modal-head"><span class="modal-title">💼 Minhas Contas <span class="pill" id="lbl-count" style="margin-left:6px">0</span></span><button class="modal-x" data-act="closeM">✕</button></div>
     <div class="mform">
       <div class="contas-modal-actions">
-        <button class="mbtn mbtn-primary" onclick="openM('m-add')">＋ Nova Conta</button>
+        <button class="mbtn mbtn-primary" data-act="openM" data-target="m-add">＋ Nova Conta</button>
       </div>
       <div class="filter-bar">
-        <button class="flt on" data-f="todas" onclick="setFiltro('todas',this)">Todas</button>
-        <button class="flt" data-f="aberto" onclick="setFiltro('aberto',this)">🔴 Aberto</button>
-        <button class="flt" data-f="pago" onclick="setFiltro('pago',this)">🟢 Pagas</button>
-        <button class="flt" data-f="terceiros" onclick="setFiltro('terceiros',this)">🟡 Terc.</button>
-        <button class="flt" data-f="postergado" onclick="setFiltro('postergado',this)">🟠 Posterg.</button>
+        <button class="flt on" data-f="todas" data-act="filter">Todas</button>
+        <button class="flt" data-f="aberto" data-act="filter">🔴 Aberto</button>
+        <button class="flt" data-f="pago" data-act="filter">🟢 Pagas</button>
+        <button class="flt" data-f="terceiros" data-act="filter">🟡 Terc.</button>
+        <button class="flt" data-f="postergado" data-act="filter">🟠 Posterg.</button>
       </div>
       <div class="sort-bar">
         <span class="sort-label">Ordenar</span>
-        <button class="sort-chip on" data-s="status" onclick="sortBy('status')">Status</button>
-        <button class="sort-chip" data-s="nome" onclick="sortBy('nome')">Nome</button>
-        <button class="sort-chip" data-s="valor" onclick="sortBy('valor')">Valor</button>
-        <button class="sort-chip" data-s="venc" onclick="sortBy('venc')">Vencimento</button>
-        <button class="sort-chip" data-s="parcela" onclick="sortBy('parcela')">Parcela</button>
+        <button class="sort-chip on" data-s="status" data-act="sort">Status</button>
+        <button class="sort-chip" data-s="nome" data-act="sort">Nome</button>
+        <button class="sort-chip" data-s="valor" data-act="sort">Valor</button>
+        <button class="sort-chip" data-s="venc" data-act="sort">Vencimento</button>
+        <button class="sort-chip" data-s="parcela" data-act="sort">Parcela</button>
       </div>
       <div class="contas-list" id="contas-list"></div>
     </div>
@@ -310,13 +320,13 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 <div class="overlay" id="m-menu">
   <div class="modal">
     <div class="modal-grab"></div>
-    <div class="modal-head"><span class="modal-title">Menu</span><button class="modal-x" onclick="closeM('m-menu')">✕</button></div>
+    <div class="modal-head"><span class="modal-title">Menu</span><button class="modal-x" data-act="closeM">✕</button></div>
     <div class="mform">
-      <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500" onclick="closeM('m-menu');setTimeout(()=>showConfirmFechar(),300)">📅&nbsp;&nbsp;Fechar Mês</button>
-      <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500" onclick="closeM('m-menu');setTimeout(()=>openBackupManager(),300)">💾&nbsp;&nbsp;Gerenciar Backups</button>
-      <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500" onclick="closeM('m-menu');setTimeout(()=>openM('m-pwd'),300)">🔑&nbsp;&nbsp;Alterar Senha</button>
-      <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500;color:var(--red)" onclick="closeM('m-menu');setTimeout(()=>openM('m-reset'),300)">🗑️&nbsp;&nbsp;Resetar Sistema</button>
-      <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500" onclick="closeM('m-menu');setTimeout(()=>doLogout(),300)">🚪&nbsp;&nbsp;Sair</button>
+      <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500" data-act="menuFechar">📅&nbsp;&nbsp;Fechar Mês</button>
+      <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500" data-act="menuBackups">💾&nbsp;&nbsp;Gerenciar Backups</button>
+      <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500" data-act="menuSenha">🔑&nbsp;&nbsp;Alterar Senha</button>
+      <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500;color:var(--red)" data-act="menuReset">🗑️&nbsp;&nbsp;Resetar Sistema</button>
+      <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500" data-act="menuLogout">🚪&nbsp;&nbsp;Sair</button>
     </div>
   </div>
 </div>
@@ -325,16 +335,16 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 <div class="overlay" id="m-add">
   <div class="modal">
     <div class="modal-grab"></div>
-    <div class="modal-head"><span class="modal-title">➕ Adicionar Conta</span><button class="modal-x" onclick="closeM('m-add')">✕</button></div>
+    <div class="modal-head"><span class="modal-title">➕ Adicionar Conta</span><button class="modal-x" data-act="closeM">✕</button></div>
     <div class="mform">
-      <div class="fgrp"><label>Nome da conta</label><input id="a-nome" type="text" placeholder="Ex: Aluguel"></div>
-      <div class="fgrp"><label>Valor (R$) — vazio = N/A</label><input id="a-valor" type="number" placeholder="0,00" step="0.01" min="0" inputmode="decimal"></div>
-      <div class="fgrp"><label>Vencimento</label><input id="a-venc" type="date"></div>
+      <div class="fgrp"><label>Nome da conta</label><input id="a-nome" type="text" placeholder="Ex: Aluguel" maxlength="80"><div class="field-err" id="err-a-nome"></div></div>
+      <div class="fgrp"><label>Valor (R$) — vazio = N/A</label><input id="a-valor" type="number" placeholder="0,00" step="0.01" min="0" inputmode="decimal"><div class="field-err" id="err-a-valor"></div></div>
+      <div class="fgrp"><label>Vencimento</label><input id="a-venc" type="date"><div class="field-err" id="err-a-venc"></div></div>
       <div class="fgrp"><label>Tipo</label><select id="a-tipo"><option>Fixa</option><option>Var.</option><option>Eventual</option></select></div>
       <div class="fgrp"><label>Parcela — vazio = N/A</label><input id="a-parcela" type="text" placeholder="Ex: 1/12, Acumulado"></div>
       <div class="fgrp"><label>Débito automático</label><select id="a-debito"><option value="Sim">Sim</option><option value="Não" selected>Não</option></select></div>
       <div class="fgrp"><label>Recorrente (replica todo mês)?</label><select id="a-rec"><option value="true">Sim</option><option value="false">Não</option></select></div>
-      <div class="modal-acts"><button class="mbtn mbtn-ghost" onclick="closeM('m-add')">Cancelar</button><button class="mbtn mbtn-primary" onclick="doAddConta()">Adicionar</button></div>
+      <div class="modal-acts"><button class="mbtn mbtn-ghost" data-act="closeM">Cancelar</button><button class="mbtn mbtn-primary" data-primary="1" data-act="doAddConta">Adicionar</button></div>
     </div>
   </div>
 </div>
@@ -343,11 +353,11 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 <div class="overlay" id="m-entrada">
   <div class="modal">
     <div class="modal-grab"></div>
-    <div class="modal-head"><span class="modal-title">💰 Registrar Entrada</span><button class="modal-x" onclick="closeM('m-entrada')">✕</button></div>
+    <div class="modal-head"><span class="modal-title">💰 Registrar Entrada</span><button class="modal-x" data-act="closeM">✕</button></div>
     <div class="mform">
       <div class="fgrp"><label>Descrição</label><input id="e-desc" type="text" placeholder="Ex: Salário"></div>
-      <div class="fgrp"><label>Valor (R$)</label><input id="e-valor" type="number" placeholder="0,00" step="0.01" min="0" inputmode="decimal"></div>
-      <div class="modal-acts"><button class="mbtn mbtn-ghost" onclick="closeM('m-entrada')">Cancelar</button><button class="mbtn mbtn-success" onclick="doEntrada()">Registrar</button></div>
+      <div class="fgrp"><label>Valor (R$)</label><input id="e-valor" type="number" placeholder="0,00" step="0.01" min="0" inputmode="decimal"><div class="field-err" id="err-e-valor"></div></div>
+      <div class="modal-acts"><button class="mbtn mbtn-ghost" data-act="closeM">Cancelar</button><button class="mbtn mbtn-success" data-primary="1" data-act="doEntrada">Registrar</button></div>
     </div>
   </div>
 </div>
@@ -356,11 +366,11 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 <div class="overlay" id="m-edit-entrada">
   <div class="modal">
     <div class="modal-grab"></div>
-    <div class="modal-head"><span class="modal-title">✏️ Corrigir Entrada</span><button class="modal-x" onclick="closeM('m-edit-entrada')">✕</button></div>
+    <div class="modal-head"><span class="modal-title">✏️ Corrigir Entrada</span><button class="modal-x" data-act="closeM">✕</button></div>
     <div class="mform">
       <div class="fgrp"><label>Valor atual</label><input id="ee-atual" type="text" disabled></div>
-      <div class="fgrp"><label>Novo valor total (R$)</label><input id="ee-valor" type="number" placeholder="0,00" step="0.01" min="0" inputmode="decimal"></div>
-      <div class="modal-acts"><button class="mbtn mbtn-ghost" onclick="closeM('m-edit-entrada')">Cancelar</button><button class="mbtn mbtn-success" onclick="doEditEntrada()">Corrigir</button></div>
+      <div class="fgrp"><label>Novo valor total (R$)</label><input id="ee-valor" type="number" placeholder="0,00" step="0.01" min="0" inputmode="decimal"><div class="field-err" id="err-ee-valor"></div></div>
+      <div class="modal-acts"><button class="mbtn mbtn-ghost" data-act="closeM">Cancelar</button><button class="mbtn mbtn-success" data-primary="1" data-act="doEditEntrada">Corrigir</button></div>
     </div>
   </div>
 </div>
@@ -369,12 +379,12 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 <div class="overlay" id="m-pagar">
   <div class="modal">
     <div class="modal-grab"></div>
-    <div class="modal-head"><span class="modal-title">💳 Registrar Pagamento</span><button class="modal-x" onclick="closeM('m-pagar')">✕</button></div>
+    <div class="modal-head"><span class="modal-title">💳 Registrar Pagamento</span><button class="modal-x" data-act="closeM">✕</button></div>
     <div class="mform">
       <div class="fgrp"><label>Conta</label><input id="p-nome" type="text" disabled></div>
       <div class="fgrp"><label>Pago por</label><select id="p-tipo"><option value="pago">Por mim</option><option value="terceiros">Por terceiros</option></select></div>
       <input type="hidden" id="p-id">
-      <div class="modal-acts"><button class="mbtn mbtn-ghost" onclick="closeM('m-pagar')">Cancelar</button><button class="mbtn mbtn-success" onclick="doPagar()">Confirmar</button></div>
+      <div class="modal-acts"><button class="mbtn mbtn-ghost" data-act="closeM">Cancelar</button><button class="mbtn mbtn-success" data-primary="1" data-act="doPagar">Confirmar</button></div>
     </div>
   </div>
 </div>
@@ -383,14 +393,14 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 <div class="overlay" id="m-edit">
   <div class="modal">
     <div class="modal-grab"></div>
-    <div class="modal-head"><span class="modal-title">✏️ Editar Conta</span><button class="modal-x" onclick="closeM('m-edit')">✕</button></div>
+    <div class="modal-head"><span class="modal-title">✏️ Editar Conta</span><button class="modal-x" data-act="closeM">✕</button></div>
     <div class="mform">
       <div class="fgrp"><label>Conta</label><input id="ed-nome" type="text" disabled></div>
-      <div class="fgrp"><label>Valor (R$)</label><input id="ed-valor" type="number" step="0.01" min="0" inputmode="decimal"></div>
-      <div class="fgrp"><label>Vencimento</label><input id="ed-venc" type="date"></div>
+      <div class="fgrp"><label>Valor (R$)</label><input id="ed-valor" type="number" step="0.01" min="0" inputmode="decimal"><div class="field-err" id="err-ed-valor"></div></div>
+      <div class="fgrp"><label>Vencimento</label><input id="ed-venc" type="date"><div class="field-err" id="err-ed-venc"></div></div>
       <div class="fgrp"><label>Parcela — vazio = N/A</label><input id="ed-parcela" type="text" placeholder="Ex: 1/12"></div>
       <input type="hidden" id="ed-id">
-      <div class="modal-acts"><button class="mbtn mbtn-ghost" onclick="closeM('m-edit')">Cancelar</button><button class="mbtn mbtn-primary" onclick="doEdit()">Salvar</button></div>
+      <div class="modal-acts"><button class="mbtn mbtn-ghost" data-act="closeM">Cancelar</button><button class="mbtn mbtn-primary" data-primary="1" data-act="doEdit">Salvar</button></div>
     </div>
   </div>
 </div>
@@ -399,13 +409,13 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 <div class="overlay" id="m-post">
   <div class="modal">
     <div class="modal-grab"></div>
-    <div class="modal-head"><span class="modal-title">🟠 Postergar Conta</span><button class="modal-x" onclick="closeM('m-post')">✕</button></div>
+    <div class="modal-head"><span class="modal-title">🟠 Postergar Conta</span><button class="modal-x" data-act="closeM">✕</button></div>
     <div class="mform">
       <div class="fgrp"><label>Conta</label><input id="po-nome" type="text" disabled></div>
       <div class="fgrp"><label>Juros / Multa (%)</label><input id="po-juros" type="number" placeholder="0" step="0.01" min="0" value="0" inputmode="decimal"></div>
       <input type="hidden" id="po-id">
       <div class="note">A conta vira <strong>Postergada</strong> e sai do saldo deste mês. Uma cópia com valor corrigido vai para o próximo mês. Se pagar a original antes de fechar, a cópia é cancelada.</div>
-      <div class="modal-acts"><button class="mbtn mbtn-ghost" onclick="closeM('m-post')">Cancelar</button><button class="mbtn" style="background:var(--orange);color:#fff" onclick="doPostergar()">Postergar</button></div>
+      <div class="modal-acts"><button class="mbtn mbtn-ghost" data-act="closeM">Cancelar</button><button class="mbtn" style="background:var(--orange);color:#fff" data-primary="1" data-act="doPostergar">Postergar</button></div>
     </div>
   </div>
 </div>
@@ -414,13 +424,13 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 <div class="overlay" id="m-pwd">
   <div class="modal">
     <div class="modal-grab"></div>
-    <div class="modal-head"><span class="modal-title">🔑 Alterar Senha</span><button class="modal-x" onclick="closeM('m-pwd')">✕</button></div>
+    <div class="modal-head"><span class="modal-title">🔑 Alterar Senha</span><button class="modal-x" data-act="closeM">✕</button></div>
     <div class="mform">
-      <div class="fgrp"><label>Senha atual</label><div class="pwd-wrap"><input type="password" id="pwd-atual" placeholder="Senha atual" inputmode="numeric"><button class="pwd-eye" type="button" onclick="toggleEye('pwd-atual',this)">👁</button></div></div>
-      <div class="fgrp"><label>Nova senha (mínimo 4 caracteres)</label><div class="pwd-wrap"><input type="password" id="pwd-nova" placeholder="Nova senha" inputmode="numeric"><button class="pwd-eye" type="button" onclick="toggleEye('pwd-nova',this)">👁</button></div></div>
-      <div class="fgrp"><label>Confirmar nova senha</label><div class="pwd-wrap"><input type="password" id="pwd-conf" placeholder="Repita a nova senha" inputmode="numeric"><button class="pwd-eye" type="button" onclick="toggleEye('pwd-conf',this)">👁</button></div></div>
+      <div class="fgrp"><label>Senha atual</label><div class="pwd-wrap"><input type="password" id="pwd-atual" placeholder="Senha atual" inputmode="numeric"><button class="pwd-eye" type="button" data-act="toggleEye" data-target="pwd-atual">👁</button></div></div>
+      <div class="fgrp"><label>Nova senha (mínimo 4 caracteres)</label><div class="pwd-wrap"><input type="password" id="pwd-nova" placeholder="Nova senha" inputmode="numeric"><button class="pwd-eye" type="button" data-act="toggleEye" data-target="pwd-nova">👁</button></div><div class="field-err" id="err-pwd-nova"></div></div>
+      <div class="fgrp"><label>Confirmar nova senha</label><div class="pwd-wrap"><input type="password" id="pwd-conf" placeholder="Repita a nova senha" inputmode="numeric"><button class="pwd-eye" type="button" data-act="toggleEye" data-target="pwd-conf">👁</button></div><div class="field-err" id="err-pwd-conf"></div></div>
       <div class="err-msg" id="pwd-err"></div>
-      <div class="modal-acts"><button class="mbtn mbtn-ghost" onclick="closeM('m-pwd')">Cancelar</button><button class="mbtn mbtn-primary" onclick="doChangePwd()">Salvar</button></div>
+      <div class="modal-acts"><button class="mbtn mbtn-ghost" data-act="closeM">Cancelar</button><button class="mbtn mbtn-primary" data-primary="1" data-act="doChangePwd">Salvar</button></div>
     </div>
   </div>
 </div>
@@ -429,14 +439,14 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 <div class="overlay" id="m-reset">
   <div class="modal">
     <div class="modal-grab"></div>
-    <div class="modal-head"><span class="modal-title">🔄 Resetar Sistema</span><button class="modal-x" onclick="closeM('m-reset')">✕</button></div>
+    <div class="modal-head"><span class="modal-title">🔄 Resetar Sistema</span><button class="modal-x" data-act="closeM">✕</button></div>
     <div class="mform">
       <div class="note" style="border-left:3px solid var(--red);color:var(--red)">⚠️ <strong style="color:var(--red)">Todos os dados serão apagados permanentemente.</strong></div>
       <div class="fgrp"><label>Mês inicial</label>
         <select id="r-mes"><option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option><option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option></select>
       </div>
       <div class="fgrp"><label>Ano inicial</label><input id="r-ano" type="number" value="2026" min="2020" max="2099" inputmode="numeric"></div>
-      <div class="modal-acts"><button class="mbtn mbtn-ghost" onclick="closeM('m-reset')">Cancelar</button><button class="mbtn mbtn-danger" onclick="doReset()">Confirmar Reset</button></div>
+      <div class="modal-acts"><button class="mbtn mbtn-ghost" data-act="closeM">Cancelar</button><button class="mbtn mbtn-danger" data-primary="1" data-act="doReset">Confirmar Reset</button></div>
     </div>
   </div>
 </div>
@@ -445,20 +455,20 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 <div class="overlay" id="m-backup">
   <div class="modal" style="max-width:600px">
     <div class="modal-grab"></div>
-    <div class="modal-head"><span class="modal-title">💾 Backups</span><button class="modal-x" onclick="closeM('m-backup')">✕</button></div>
+    <div class="modal-head"><span class="modal-title">💾 Backups</span><button class="modal-x" data-act="closeM">✕</button></div>
     <div class="mform">
       <div class="bk-toolbar">
-        <button class="mbtn mbtn-primary" style="flex:1" onclick="doNovoBackup()">💾 Criar backup agora</button>
+        <button class="mbtn mbtn-primary" style="flex:1" data-act="doNovoBackup">💾 Criar backup agora</button>
       </div>
       <div class="bk-toolbar">
-        <button class="mbtn mbtn-ghost" style="flex:1" onclick="bkSelectAll()">Selecionar todos</button>
-        <button class="mbtn mbtn-ghost" style="flex:1" onclick="bkDeselectAll()">Limpar</button>
+        <button class="mbtn mbtn-ghost" style="flex:1" data-act="bkSelectAll">Selecionar todos</button>
+        <button class="mbtn mbtn-ghost" style="flex:1" data-act="bkDeselectAll">Limpar</button>
       </div>
-      <button class="mbtn mbtn-danger" id="btn-del-sel" onclick="bkDeleteSelected()" style="display:none;width:100%">🗑️ Excluir (<span id="bk-sel-n">0</span>)</button>
+      <button class="mbtn mbtn-danger" id="btn-del-sel" data-act="bkDeleteSelected" style="display:none;width:100%">🗑️ Excluir (<span id="bk-sel-n">0</span>)</button>
       <div class="note">
         <strong>Restaurar arquivo externo:</strong>
         <input type="file" id="bk-file-ext" accept=".json,application/json" style="margin-top:8px;width:100%;font-size:13px">
-        <button class="mbtn mbtn-ghost" style="margin-top:8px;width:100%" onclick="bkRestoreExternal()">📂 Restaurar do arquivo</button>
+        <button class="mbtn mbtn-ghost" style="margin-top:8px;width:100%" data-act="bkRestoreExternal">📂 Restaurar do arquivo</button>
       </div>
       <div>
         <div class="label" style="margin-bottom:10px">Backups salvos localmente</div>
@@ -478,13 +488,13 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
         <div class="brand-sub"><span id="badge-comp">--</span></div>
       </div>
     </div>
-    <button class="menu-btn" onclick="openM('m-menu')">☰</button>
+    <button class="menu-btn" data-act="openM" data-target="m-menu" aria-label="Menu">☰</button>
   </div>
   <div class="action-bar">
-    <button class="ab-btn ab-primary" onclick="openContasModal()">💼 Contas</button>
-    <button class="ab-btn ab-success" onclick="openM('m-entrada')">＋ Entrada</button>
-    <button class="ab-btn ab-ghost" onclick="openBackupManager()">💾 Backups</button>
-    <button class="ab-btn ab-ghost" onclick="showConfirmFechar()">📅 Fechar Mês</button>
+    <button class="ab-btn ab-primary" data-act="openContas">💼 Contas</button>
+    <button class="ab-btn ab-success" data-act="openM" data-target="m-entrada">＋ Entrada</button>
+    <button class="ab-btn ab-ghost" data-act="openBackups">💾 Backups</button>
+    <button class="ab-btn ab-ghost" data-act="showFechar">📅 Fechar Mês</button>
   </div>
 </header>
 
@@ -493,7 +503,7 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
   <div class="page">
 
     <!-- Botão que abre modal de Contas -->
-    <button class="contas-btn contas-btn-full" onclick="openContasModal()">
+    <button class="contas-btn contas-btn-full" data-act="openContas">
       <div class="contas-btn-top">
         <div class="contas-btn-left">
           <div class="contas-btn-icon">💼</div>
@@ -508,7 +518,7 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
     </button>
     <div class="confirm-box" id="confirm-box">
       <p>⚠️ Fechar o mês de <strong><span id="conf-mes"></span></strong>.<br>O histórico será gravado e as contas recorrentes replicadas. <strong>Ação irreversível.</strong></p>
-      <div style="display:flex;gap:8px"><button class="mbtn mbtn-ghost" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:600" onclick="hideConfirmFechar()">Cancelar</button><button class="mbtn mbtn-danger" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:600" onclick="fecharMes()">Confirmar</button></div>
+      <div style="display:flex;gap:8px"><button class="mbtn mbtn-ghost" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:600" data-act="hideFechar">Cancelar</button><button class="mbtn mbtn-danger" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:600" data-act="fecharMes">Confirmar</button></div>
     </div>
 
     <!-- Resumo -->
@@ -540,13 +550,35 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
   </div>
 </main>
 
+<!-- ══════════════════ CONFIRM DIALOG ══════════════════ -->
+<div class="overlay" id="m-confirm">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head"><span class="modal-title" id="cf-title">Confirmar</span></div>
+    <div class="mform">
+      <div id="cf-msg" style="color:var(--text);font-size:14px;line-height:1.55;white-space:pre-wrap"></div>
+      <div class="modal-acts">
+        <button class="mbtn mbtn-ghost" id="cf-cancel">Cancelar</button>
+        <button class="mbtn mbtn-primary" id="cf-ok">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ LOADING OVERLAY ══════════════════ -->
+<div class="overlay" id="m-loading" style="background:rgba(0,0,0,.6)">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:14px;color:#fff">
+    <div class="spinner" aria-hidden="true"></div>
+    <div id="ld-msg" style="font-size:14px;font-weight:500"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Install hint para iOS -->
 <div class="install-hint" id="install-hint">
   <span style="font-size:22px">📱</span>
   <div style="flex:1"><strong>Adicione à Tela Inicial</strong><br><span style="color:var(--sub);font-size:11px">Toque em ⬆ e depois em "Adicionar à Tela de Início"</span></div>
-  <button class="install-hint-close" onclick="document.getElementById('install-hint').classList.remove('show');localStorage.setItem('cfp_hint_shown','1')">✕</button>
+  <button class="install-hint-close" data-act="hideHint" aria-label="Fechar dica">✕</button>
 </div>
 
 <script>
@@ -923,14 +955,14 @@ function renderTabela() {
     let acts = '';
     if (c.status === 'aberto') {
       acts = `
-        <button class="act-btn act-pay" onclick="openPagar('${idE}')">Pagar</button>
-        <button class="act-btn act-post" onclick="openPost('${idE}')">Posterg.</button>
-        <button class="act-btn act-del" onclick="delConta('${idE}')">Excluir</button>
-        <button class="act-btn act-edit" onclick="openEdit('${idE}')">Editar</button>`;
+        <button class="act-btn act-pay" data-act="pagarConta" data-id="${idE}">Pagar</button>
+        <button class="act-btn act-post" data-act="postConta" data-id="${idE}">Posterg.</button>
+        <button class="act-btn act-del" data-act="delConta" data-id="${idE}">Excluir</button>
+        <button class="act-btn act-edit" data-act="editConta" data-id="${idE}">Editar</button>`;
     } else {
       acts = `
-        <button class="act-btn act-open" onclick="reabrirConta('${idE}')">Reabrir</button>
-        <button class="act-btn act-del" onclick="delConta('${idE}')">Excluir</button>`;
+        <button class="act-btn act-open" data-act="reabrirConta" data-id="${idE}">Reabrir</button>
+        <button class="act-btn act-del" data-act="delConta" data-id="${idE}">Excluir</button>`;
     }
     return `<div class="conta-card">
       <div class="conta-top">
@@ -972,7 +1004,7 @@ function renderResumo() {
     }
   }
   document.getElementById('resumo').innerHTML = `
-    <div class="ritem"><div class="label">Entradas</div><div class="rval g">${fmtRS(r.ent)}</div>${r.ent>0?`<button class="correct-btn" onclick="openEditEntrada()">✏️ Corrigir</button>`:''}</div>
+    <div class="ritem"><div class="label">Entradas</div><div class="rval g">${fmtRS(r.ent)}</div>${r.ent>0?`<button class="correct-btn" data-act="openEditEntrada">✏️ Corrigir</button>`:''}</div>
     <div class="ritem"><div class="label">Saldo do mês</div><div class="rval ${sc}">${fmtRS(r.saldo)}</div><div class="rsub">entradas − pagas − aberto</div></div>
     <div class="ritem"><div class="label">Despesas</div><div class="rval r">${fmtRS(r.despesas)}</div><div class="rsub">pagas + terceiros</div></div>
     <div class="ritem"><div class="label">Em aberto</div><div class="rval o">${fmtRS(r.emAberto)}</div></div>
@@ -1111,7 +1143,7 @@ async function reabrirConta(id) {
 
 async function delConta(id) {
   const c = S.contas.find(x => x.id===id); if(!c) return;
-  if (!confirm('Excluir "' + c.nome + '"?')) return;
+  if (!(await confirmDialog({title:'Excluir conta', msg:'Excluir "' + c.nome + '"?\nEssa ação não pode ser desfeita.', ok:'Excluir', danger:true}))) return;
   if (c.status === 'postergado') c.pendingCopia = null;
   S.contas = S.contas.filter(x => x.id !== id);
   addLog('Conta excluída: ' + c.nome, 'b');
@@ -1281,15 +1313,15 @@ async function renderBackupList() {
     const fn = esc(b.filename);
     const tp = esc(b.type);
     return `<div class="bk-item">
-      <input type="checkbox" class="bk-check" data-file="${fn}" onchange="bkCheckChange()">
+      <input type="checkbox" class="bk-check" data-file="${fn}" data-act="bkCheckChange">
       <div class="bk-info">
         <div class="bk-name">${fn}</div>
         <div class="bk-meta">${esc(dtStr)} · ${sizeKB}KB · ${+b.n_contas||0} contas${b.comp?' · '+esc(b.comp.mes)+'/'+esc(b.comp.ano):''}</div>
       </div>
       <span class="bk-type-${tp}">${b.type==='auto'?'Auto':'Manual'}</span>
       <div class="bk-actions">
-        <button class="bk-ibtn dl" onclick="bkDownload('${fn}')">⬇</button>
-        <button class="bk-ibtn rs" onclick="bkRestore('${fn}')">↩</button>
+        <button class="bk-ibtn dl" data-act="bkDownload" data-file="${fn}">⬇</button>
+        <button class="bk-ibtn rs" data-act="bkRestore" data-file="${fn}">↩</button>
       </div>
     </div>`;
   }).join('');
@@ -1318,8 +1350,8 @@ function bkDeselectAll() { document.querySelectorAll('.bk-check').forEach(cb => 
 async function bkDeleteSelected() {
   const sel = [...document.querySelectorAll('.bk-check:checked')].map(cb => cb.dataset.file);
   if (!sel.length) return;
-  if (!confirm('Excluir ' + sel.length + ' backup(s)? Ação irreversível.')) return;
-  for (const f of sel) await idbDelete('backups', f);
+  if (!(await confirmDialog({title:'Excluir backups', msg:'Excluir ' + sel.length + ' backup(s)?\nAção irreversível.', ok:'Excluir', danger:true}))) return;
+  await withLoading('Excluindo…', async () => { for (const f of sel) await idbDelete('backups', f); });
   toast(sel.length + ' backup(s) excluído(s).');
   await renderBackupList();
 }
@@ -1357,17 +1389,19 @@ async function bkRestore(filename) {
   try {
     const b = await idbGet('backups', filename);
     if (!b) { toast('Backup não encontrado.'); return; }
-    if (!confirm('Restaurar "' + filename + '"?\nOs dados atuais serão substituídos.')) return;
+    if (!(await confirmDialog({title:'Restaurar backup', msg:'Restaurar "' + filename + '"?\nOs dados atuais serão substituídos (um backup pre-restore será criado antes).', ok:'Restaurar', danger:true}))) return;
     const estado = b.payload && b.payload.data;
     if (!validarEstado(estado)) { toast('Backup inválido.'); return; }
-    await createBackup('pre-restore');
-    S = estado;
-    if (!S.log) S.log = [];
-    if (!S.contas) S.contas = [];
-    if (!S.historico) S.historico = [];
-    addLog('Backup restaurado: ' + filename, 'v');
+    await withLoading('Restaurando…', async () => {
+      await createBackup('pre-restore');
+      S = estado;
+      if (!S.log) S.log = [];
+      if (!S.contas) S.contas = [];
+      if (!S.historico) S.historico = [];
+      addLog('Backup restaurado: ' + filename, 'v');
+      await saveState();
+    });
     closeM('m-backup');
-    await saveState();
     renderAll();
     toast('Backup restaurado!');
   } catch (err) {
@@ -1385,20 +1419,210 @@ async function bkRestoreExternal() {
     if (!parsed || (!parsed.data && !parsed.contas)) { toast('Formato inválido.'); return; }
     const estado = parsed.data || parsed;
     if (!validarEstado(estado)) { toast('Backup inválido.'); return; }
-    if (!confirm('Restaurar "' + file.name + '"?\nOs dados atuais serão substituídos.')) return;
-    await createBackup('pre-restore');
-    S = estado;
-    if (!S.log) S.log = [];
-    if (!S.contas) S.contas = [];
-    if (!S.historico) S.historico = [];
-    addLog('Backup externo restaurado: ' + file.name, 'v');
+    if (!(await confirmDialog({title:'Restaurar backup externo', msg:'Restaurar "' + file.name + '"?\nOs dados atuais serão substituídos (um backup pre-restore será criado antes).', ok:'Restaurar', danger:true}))) return;
+    await withLoading('Restaurando…', async () => {
+      await createBackup('pre-restore');
+      S = estado;
+      if (!S.log) S.log = [];
+      if (!S.contas) S.contas = [];
+      if (!S.historico) S.historico = [];
+      addLog('Backup externo restaurado: ' + file.name, 'v');
+      await saveState();
+    });
     closeM('m-backup');
-    await saveState();
     renderAll();
     toast('Backup restaurado!');
   } catch (err) {
     toast('Erro ao restaurar: ' + (err && err.message ? err.message : 'falha inesperada'));
   }
+}
+
+// ─── Confirm dialog (substitui confirm() nativo) ──────────
+function confirmDialog({title='Confirmar', msg='', ok='Confirmar', cancel='Cancelar', danger=false}={}) {
+  return new Promise(resolve => {
+    document.getElementById('cf-title').textContent = title;
+    document.getElementById('cf-msg').textContent = msg;
+    const btnOk = document.getElementById('cf-ok');
+    const btnCancel = document.getElementById('cf-cancel');
+    btnOk.textContent = ok;
+    btnCancel.textContent = cancel;
+    btnOk.className = 'mbtn ' + (danger ? 'mbtn-danger' : 'mbtn-primary');
+    const cleanup = v => {
+      btnOk.removeEventListener('click', onOk);
+      btnCancel.removeEventListener('click', onCancel);
+      closeM('m-confirm');
+      resolve(v);
+    };
+    const onOk = () => cleanup(true);
+    const onCancel = () => cleanup(false);
+    btnOk.addEventListener('click', onOk);
+    btnCancel.addEventListener('click', onCancel);
+    openM('m-confirm');
+    setTimeout(() => btnOk.focus(), 50);
+  });
+}
+
+// ─── Loading overlay ──────────────────────────────────────
+function showLoading(msg='Carregando…') {
+  document.getElementById('ld-msg').textContent = msg;
+  openM('m-loading');
+}
+function hideLoading() { closeM('m-loading'); }
+async function withLoading(msg, fn) {
+  showLoading(msg);
+  try { return await fn(); }
+  finally { hideLoading(); }
+}
+
+// ─── Validações em tempo real ─────────────────────────────
+function setFieldError(inputId, msg) {
+  const inp = document.getElementById(inputId);
+  const err = document.getElementById('err-' + inputId);
+  if (!inp) return;
+  if (msg) { inp.classList.add('invalid'); if (err) { err.textContent = msg; err.classList.add('show'); } }
+  else     { inp.classList.remove('invalid'); if (err) { err.textContent = ''; err.classList.remove('show'); } }
+}
+function validateNome(id) {
+  const v = (document.getElementById(id).value||'').trim();
+  if (!v) { setFieldError(id, 'Informe o nome.'); return false; }
+  if (v.length > 80) { setFieldError(id, 'Nome muito longo (máx 80).'); return false; }
+  setFieldError(id, null); return true;
+}
+function validateValor(id, {required=false, allowZero=true}={}) {
+  const raw = document.getElementById(id).value;
+  if (raw === '' || raw == null) {
+    if (required) { setFieldError(id, 'Informe um valor.'); return false; }
+    setFieldError(id, null); return true;
+  }
+  const n = +raw;
+  if (isNaN(n)) { setFieldError(id, 'Valor inválido.'); return false; }
+  if (n < 0) { setFieldError(id, 'Valor não pode ser negativo.'); return false; }
+  if (!allowZero && n === 0) { setFieldError(id, 'Valor deve ser maior que zero.'); return false; }
+  setFieldError(id, null); return true;
+}
+function validateVenc(id) {
+  const v = document.getElementById(id).value;
+  if (!v) { setFieldError(id, null); return true; }
+  const dt = parseLocalDate(v);
+  if (!dt) { setFieldError(id, 'Data inválida.'); return false; }
+  setFieldError(id, null); return true;
+}
+function validatePwdNova() {
+  const v = document.getElementById('pwd-nova').value;
+  if (!v) { setFieldError('pwd-nova', null); setFieldError('pwd-conf', null); return false; }
+  if (v.length < 4) { setFieldError('pwd-nova', 'Mínimo 4 caracteres.'); return false; }
+  setFieldError('pwd-nova', null);
+  const conf = document.getElementById('pwd-conf').value;
+  if (conf && conf !== v) { setFieldError('pwd-conf', 'Senhas não coincidem.'); return false; }
+  setFieldError('pwd-conf', null);
+  return true;
+}
+
+function bindValidations() {
+  const bind = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('input', fn); };
+  bind('a-nome',   () => validateNome('a-nome'));
+  bind('a-valor',  () => validateValor('a-valor'));
+  bind('a-venc',   () => validateVenc('a-venc'));
+  bind('e-valor',  () => validateValor('e-valor', {required:true, allowZero:false}));
+  bind('ee-valor', () => validateValor('ee-valor', {required:true}));
+  bind('ed-valor', () => validateValor('ed-valor', {required:true}));
+  bind('ed-venc',  () => validateVenc('ed-venc'));
+  bind('pwd-nova', validatePwdNova);
+  bind('pwd-conf', validatePwdNova);
+}
+
+// ─── Event delegation (substitui onclick inline) ──────────
+function setFiltroEl(el) {
+  filtroAtivo = el.dataset.f || 'todas';
+  document.querySelectorAll('.flt').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  renderTabela();
+}
+
+const ACTIONS = {
+  doLogin:       () => doLogin(),
+  doLogout:      () => doLogout(),
+  doAddConta:    () => doAddConta(),
+  doEntrada:     () => doEntrada(),
+  doEditEntrada: () => doEditEntrada(),
+  openEditEntrada: () => openEditEntrada(),
+  doPagar:       () => doPagar(),
+  doEdit:        () => doEdit(),
+  doPostergar:   () => doPostergar(),
+  doChangePwd:   () => doChangePwd(),
+  doReset:       () => doReset(),
+  fecharMes:     () => fecharMes(),
+  showFechar:    () => showConfirmFechar(),
+  hideFechar:    () => hideConfirmFechar(),
+  openContas:    () => openContasModal(),
+  openBackups:   () => openBackupManager(),
+  doNovoBackup:  () => doNovoBackup(),
+  bkSelectAll:   () => bkSelectAll(),
+  bkDeselectAll: () => bkDeselectAll(),
+  bkDeleteSelected: () => bkDeleteSelected(),
+  bkRestoreExternal: () => bkRestoreExternal(),
+  bkCheckChange: () => bkCheckChange(),
+  bkDownload:    el => bkDownload(el.dataset.file),
+  bkRestore:     el => bkRestore(el.dataset.file),
+  pagarConta:    el => openPagar(el.dataset.id),
+  postConta:     el => openPost(el.dataset.id),
+  editConta:     el => openEdit(el.dataset.id),
+  delConta:      el => delConta(el.dataset.id),
+  reabrirConta:  el => reabrirConta(el.dataset.id),
+  openM:         el => openM(el.dataset.target),
+  closeM:        el => { const ov = el.closest('.overlay'); if (ov) closeM(ov.id); },
+  filter:        el => setFiltroEl(el),
+  sort:          el => sortBy(el.dataset.s),
+  toggleEye:     el => toggleEye(el.dataset.target, el),
+  menuFechar:    () => { closeM('m-menu'); setTimeout(showConfirmFechar, 300); },
+  menuBackups:   () => { closeM('m-menu'); setTimeout(openBackupManager, 300); },
+  menuSenha:     () => { closeM('m-menu'); setTimeout(() => openM('m-pwd'), 300); },
+  menuReset:     () => { closeM('m-menu'); setTimeout(() => openM('m-reset'), 300); },
+  menuLogout:    () => { closeM('m-menu'); setTimeout(doLogout, 300); },
+  hideHint:      () => { const el = document.getElementById('install-hint'); if (el) el.classList.remove('show'); localStorage.setItem('cfp_hint_shown','1'); },
+};
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const fn = ACTIONS[el.dataset.act];
+  if (!fn) return;
+  // ignora cliques em inputs (que disparariam duplicado se delegado)
+  if (el.tagName === 'INPUT' && el.type !== 'checkbox') return;
+  fn(el, e);
+});
+// onchange dos checkboxes de backup (data-act="bkCheckChange")
+document.addEventListener('change', e => {
+  const el = e.target.closest('[data-act="bkCheckChange"]');
+  if (el) ACTIONS.bkCheckChange(el, e);
+});
+
+// ─── Teclado: Enter submete, Escape fecha modal ───────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const open = [...document.querySelectorAll('.overlay.open')].pop();
+    if (!open || open.id === 'm-loading') return;
+    // cancelar no confirm dialog = escolher "não"
+    if (open.id === 'm-confirm') { document.getElementById('cf-cancel').click(); return; }
+    closeM(open.id);
+    return;
+  }
+  if (e.key === 'Enter') {
+    const open = [...document.querySelectorAll('.overlay.open')].pop();
+    if (!open) return;
+    // não interferir em textarea ou campos de data (Safari abre date picker)
+    const tag = (document.activeElement && document.activeElement.tagName) || '';
+    if (tag === 'TEXTAREA') return;
+    const primary = open.querySelector('[data-primary="1"], #cf-ok');
+    if (primary) { e.preventDefault(); primary.click(); }
+  }
+});
+
+// Inicializa bindings de validação quando o DOM já estiver pronto
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bindValidations);
+} else {
+  bindValidations();
 }
 </script>
 </body>

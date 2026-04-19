@@ -689,6 +689,39 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 </div>
 </div>
 
+<!-- AJUSTE RESERVA -->
+<div class="overlay" id="m-ajuste-reserva">
+<div class="modal">
+<div class="modal-grab"></div>
+<div class="modal-head"><span class="modal-title"><svg style="width:20px;height:20px;color:var(--accent-purple)"><use href="#i-lock"/></svg> Ajustar Reserva</span><button type="button" class="modal-x" onclick="closeM('m-ajuste-reserva')"><svg><use href="#i-x"/></svg></button></div>
+<div class="mform">
+<div class="note" style="background:rgba(131,56,236,.08);border-color:rgba(131,56,236,.3)"><strong style="color:var(--accent-purple)">Valor atual no app:</strong> <span id="ar-saldo-atual" style="color:var(--accent-purple);font-weight:700">R$ 0,00</span></div>
+
+<div id="ar-opcoes" style="display:flex;flex-direction:column;gap:10px">
+<button type="button" class="mbtn mbtn-ghost" style="padding:16px;text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:4px;background:rgba(6,214,160,.08);border-color:rgba(6,214,160,.3)" onclick="selectTipoAjuste('aporte')">
+<span style="color:var(--accent-tertiary);font-weight:700;font-size:14px">🟢 Adicionei dinheiro</span>
+<span style="color:var(--text-tertiary);font-size:12px;font-weight:400">Recebi extra e guardei na reserva</span>
+</button>
+<button type="button" class="mbtn mbtn-ghost" style="padding:16px;text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:4px;background:rgba(255,107,53,.08);border-color:rgba(255,107,53,.3)" onclick="selectTipoAjuste('saque')">
+<span style="color:var(--accent-primary);font-weight:700;font-size:14px">🟠 Saquei dinheiro</span>
+<span style="color:var(--text-tertiary);font-size:12px;font-weight:400">Precisei tirar para emergência</span>
+</button>
+<button type="button" class="mbtn mbtn-ghost" style="padding:16px;text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:4px;background:rgba(17,138,178,.08);border-color:rgba(17,138,178,.3)" onclick="selectTipoAjuste('corrigir')">
+<span style="color:var(--accent-blue);font-weight:700;font-size:14px">🔵 Corrigir valor</span>
+<span style="color:var(--text-tertiary);font-size:12px;font-weight:400">Ajustar com saldo real do banco</span>
+</button>
+</div>
+
+<div id="ar-form" style="display:none;flex-direction:column;gap:14px">
+<div class="fgrp"><label id="ar-label-valor">Valor (R$)</label><input id="ar-valor" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00"></div>
+<div class="fgrp" id="ar-motivo-wrap"><label id="ar-label-motivo">Motivo</label><input id="ar-motivo" type="text" placeholder=""></div>
+<div id="ar-preview" class="note" style="display:none"></div>
+<div class="modal-acts"><button type="button" class="mbtn mbtn-ghost" onclick="voltarAjusteReserva()">Voltar</button><button type="button" class="mbtn mbtn-primary" id="ar-btn-confirmar" onclick="confirmarAjusteReserva()">Confirmar</button></div>
+</div>
+</div>
+</div>
+</div>
+
 <!-- RESET -->
 <div class="overlay" id="m-reset">
 <div class="modal">
@@ -758,7 +791,7 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 <div class="card">
 <div class="card-head"><div class="card-title"><svg><use href="#i-trending-up"/></svg> Resumo do Mês</div></div>
 <div class="resumo-grid" id="resumo"></div>
-<div class="resumo-nota"><strong>Saldo:</strong> Entradas menos pagas por você menos em aberto. Postergadas não entram em "em aberto". Pagas por terceiros não reduzem seu saldo.</div>
+<div class="resumo-nota"><strong>Saldo:</strong> entradas menos pagas menos em aberto menos investimento obrigatório. O investimento é compromisso mensal, tratado como conta fixa. Postergadas não entram em "em aberto". Pagas por terceiros não reduzem seu saldo.</div>
 </div>
 
 <div class="card">
@@ -824,10 +857,11 @@ const INITIAL_DATA = {
     {msg:'Restaure seu backup ou comece do zero', cor:'g', ts:'00:00'}
   ],
   nomesUsados: [],
+  totalInvestido: 0,
   sortCol: 'status',
   sortDir: 'asc'
 };
-const INITIAL_DATA_VERSION = 'cfp_v4_reset_2026_04';
+const INITIAL_DATA_VERSION = 'cfp_v5_invest_obrigatorio_2026_04';
 
 let db = null;
 let S = null;
@@ -921,6 +955,8 @@ async function loadState() {
   }
   // Compatibilidade com backup antigo (campo entradas em número, sem entradasList)
   if (!Array.isArray(S.entradasList)) S.entradasList = [];
+  // v5: Reserva de emergência
+  if (typeof S.totalInvestido !== 'number') S.totalInvestido = 0;
 }
 async function saveState() {
   await idbPut('state', {id:1, data:S});
@@ -981,13 +1017,19 @@ function calcResumo() {
     else if (c.status === 'aberto')    { emAberto += v; }
   }
   const ent = totalEntradas();
-  const saldo = +(ent - pagasMim - emAberto).toFixed(2);
+  const saldoBruto = +(ent - pagasMim - emAberto).toFixed(2);
+  const inv = calcInvestimentoObrigatorio(saldoBruto);
+  const saldo = +(saldoBruto - inv.valor).toFixed(2);
   return {
     ent: +ent.toFixed(2),
     despesas: +despesas.toFixed(2),
     pagasMim: +pagasMim.toFixed(2),
     pagasTer: +pagasTer.toFixed(2),
     emAberto: +emAberto.toFixed(2),
+    saldoBruto: saldoBruto,
+    investimento: inv.valor,
+    investPct: inv.pct,
+    investFaixa: inv.faixa,
     saldo: saldo
   };
 }
@@ -1002,37 +1044,47 @@ function diasRestantesNoMes() {
   return diasNoMes(mesApp, anoApp);
 }
 function perfilInvestimento(saldo) {
+  // MANTIDO para retrocompatibilidade com chamadas existentes
   if (saldo >= 2000) return {pct: .30, perfil: 'Excelente'};
   if (saldo >= 800)  return {pct: .20, perfil: 'Bom'};
   if (saldo >= 200)  return {pct: .15, perfil: 'Moderado'};
   return {pct: .10, perfil: 'Conservador'};
 }
 
+// Nova regra: investimento como OBRIGACAO mensal (faixa por saldo bruto)
+function calcInvestimentoObrigatorio(saldoBruto) {
+  if (saldoBruto <= 0)     return {valor: 0,    pct: 0,    faixa: 'Sem folga'};
+  if (saldoBruto >= 3000)  return {valor: +(saldoBruto * 0.20).toFixed(2), pct: 0.20, faixa: 'Excelente'};
+  if (saldoBruto >= 1500)  return {valor: +(saldoBruto * 0.15).toFixed(2), pct: 0.15, faixa: 'Bom'};
+  if (saldoBruto >= 500)   return {valor: +(saldoBruto * 0.10).toFixed(2), pct: 0.10, faixa: 'Moderado'};
+  return {valor: +(saldoBruto * 0.05).toFixed(2), pct: 0.05, faixa: 'Mínimo'};
+}
+
 function calcBudget() {
   const r = calcResumo();
-  let investimento = 0;
-  if (r.ent > 0 && r.saldo > 0) {
-    const p = perfilInvestimento(r.saldo);
-    investimento = +(r.saldo * p.pct).toFixed(2);
-  }
-  const livre = Math.max(0, +(r.saldo - investimento).toFixed(2));
+  // r.investimento ja vem calculado (obrigatorio); r.saldo ja e o liquido
+  const investimento = r.investimento;
+  const livre = Math.max(0, r.saldo);
   const dias = diasRestantesNoMes();
+  const poucosDias = dias <= 3;
   const porDia = +(livre / dias).toFixed(2);
-  const porSemana = +(porDia * 7).toFixed(2);
+  // Por semana: limitar ao livre (nao faz sentido sugerir mais do que existe)
+  const porSemana = Math.min(+(porDia * 7).toFixed(2), livre);
   const porRefeicao = +(porDia / 3).toFixed(2);
 
-  const hoje = new Date();
-  const mesApp = S.comp.mes, anoApp = S.comp.ano;
-  const mesAt = hoje.getMonth()+1, anoAt = hoje.getFullYear();
-  let diasDecorridos = 1;
-  if (anoApp === anoAt && mesApp === mesAt) diasDecorridos = Math.max(1, hoje.getDate());
-  else if (anoApp < anoAt || (anoApp === anoAt && mesApp < mesAt)) diasDecorridos = diasNoMes(mesApp, anoApp);
-  const queimaDiaria = +(r.pagasMim / diasDecorridos).toFixed(2);
-  const queimaRitmo = porDia > 0 ? (queimaDiaria / porDia) : 0;
-  const vaiSobrar = +(r.saldo - investimento).toFixed(2);
-  const sobraExtra = porDia;
+  // Campos novos para os 3 cards redesenhados
+  const jaGastei = r.pagasMim;
+  const faltaPagar = r.emAberto;
+  const contasAbertas = (S.contas || []).filter(c => c.status === 'aberto').length;
+  const statusPct = r.ent > 0
+    ? Math.round(((r.pagasMim + r.emAberto) / r.ent) * 100)
+    : 0;
 
-  return {r, investimento, livre, dias, porDia, porSemana, porRefeicao, queimaDiaria, queimaRitmo, vaiSobrar, sobraExtra};
+  return {
+    r, investimento, livre, dias, poucosDias,
+    porDia, porSemana, porRefeicao,
+    jaGastei, faltaPagar, contasAbertas, statusPct
+  };
 }
 
 function getParcSort(c) {
@@ -1174,17 +1226,14 @@ function renderResumo() {
   const sc = r.saldo >= 0 ? 'g' : 'r';
   let inv = '';
   if (r.ent > 0) {
-    if (r.saldo > 0) {
-      const p = perfilInvestimento(r.saldo);
-      const sug = +(r.saldo * p.pct).toFixed(2);
-      const cor = r.saldo >= 2000 ? 'g' : (r.saldo >= 800 ? 'b' : (r.saldo >= 200 ? 'v' : 'y'));
-      inv = '<div class="invest-card">' +
-        '<div class="invest-hdr"><div class="rlabel"><svg style="width:11px;height:11px;vertical-align:middle;margin-right:4px;color:var(--accent-tertiary)"><use href="#i-diamond"/></svg> Sugestão de investimento</div><div class="rsub" style="color:var(--accent-tertiary)">' + p.perfil + '</div></div>' +
-        '<div class="invest-val ' + cor + '">' + fmtRval(sug) + '</div>' +
-        '<div class="invest-note">' + (p.pct*100).toFixed(0) + '% do saldo de ' + fmtRS(r.saldo) + '</div></div>';
+    if (r.investimento > 0) {
+      inv = '<div class="invest-card" style="background:linear-gradient(135deg,rgba(131,56,236,.1) 0%,rgba(255,107,53,.08) 100%);border-color:rgba(131,56,236,.3)">' +
+        '<div class="invest-hdr"><div class="rlabel" style="color:var(--accent-purple)"><svg style="width:11px;height:11px;vertical-align:middle;margin-right:4px"><use href="#i-lock"/></svg> Investimento do mês</div><div class="rsub" style="color:var(--accent-purple);font-weight:700">OBRIGATÓRIO · ' + r.investFaixa + '</div></div>' +
+        '<div class="invest-val v">' + fmtRval(r.investimento) + '</div>' +
+        '<div class="invest-note">' + (r.investPct*100).toFixed(0) + '% do saldo bruto de ' + fmtRS(r.saldoBruto) + '</div></div>';
     } else {
-      inv = '<div class="invest-warn"><div class="rlabel" style="color:var(--accent-pink)"><svg style="width:11px;height:11px;vertical-align:middle;margin-right:4px"><use href="#i-alert"/></svg> Sugestão</div>' +
-        '<div class="rval r" style="font-size:18px;margin-top:6px">Saldo insuficiente</div></div>';
+      inv = '<div class="invest-warn"><div class="rlabel" style="color:var(--accent-pink)"><svg style="width:11px;height:11px;vertical-align:middle;margin-right:4px"><use href="#i-alert"/></svg> Investimento</div>' +
+        '<div class="rval r" style="font-size:18px;margin-top:6px">Sem folga este mês</div></div>';
     }
   }
 
@@ -1241,21 +1290,37 @@ function renderBudget() {
       '<div class="budget-hero-sub">Saldo insuficiente neste mês</div></div>';
     return;
   }
-  const queimaCor = b.queimaRitmo > 1.1 ? 'r' : (b.queimaRitmo > 0.9 && b.queimaRitmo > 0 ? 'y' : 'g');
-  const queimaSub = b.queimaRitmo > 1.1 ? 'acima do ideal' : (b.queimaRitmo > 0.9 ? 'no limite' : (b.queimaRitmo > 0 ? 'economizando' : 'sem dados'));
+
+  // Hero: no normal mostra livre. Em poucos dias (<=3) mostra "Resta no mes"
+  const heroLabel = b.poucosDias ? 'Resta no mês' : 'Disponível livre (após investimento)';
+  const heroSub = b.poucosDias
+    ? 'últimos ' + b.dias + ' dias, use com calma'
+    : 'de ' + fmtRS(r.saldoBruto) + ' bruto · ' + fmtRS(b.investimento) + ' investido';
+
+  // Cores dos 3 novos cards
+  const faltaCor = b.faltaPagar > 0 ? 'o' : 'g';
+  const faltaSub = b.faltaPagar > 0 ? b.contasAbertas + ' conta(s) em aberto' : 'tudo quitado';
+  const statusCor = b.statusPct < 60 ? 'g' : (b.statusPct < 80 ? 'y' : 'r');
+  const statusSub = b.statusPct < 60 ? 'saudável' : (b.statusPct < 80 ? 'atenção' : 'apertado');
+
+  // Primeiro card (por dia) vira "resta no mes" em poucosDias
+  const primeiroCard = b.poucosDias
+    ? '<div class="budget-box"><div class="budget-box-label">Resta no mês</div><div class="budget-box-val g">' + fmtRval(b.livre) + '</div><div class="budget-box-sub">total restante</div></div>'
+    : '<div class="budget-box"><div class="budget-box-label">Por dia</div><div class="budget-box-val g">' + fmtRval(b.porDia) + '</div><div class="budget-box-sub">' + b.dias + ' dias restantes</div></div>';
+
   el.innerHTML =
     '<div class="budget-hero">' +
-      '<div class="budget-hero-label">Disponível livre (após investimento)</div>' +
+      '<div class="budget-hero-label">' + heroLabel + '</div>' +
       '<div class="budget-hero-val">' + fmtRval(b.livre) + '</div>' +
-      '<div class="budget-hero-sub">de ' + fmtRS(r.saldo) + ' saldo · ' + fmtRS(b.investimento) + ' para investir</div>' +
+      '<div class="budget-hero-sub">' + heroSub + '</div>' +
     '</div>' +
     '<div class="budget-grid">' +
-      '<div class="budget-box"><div class="budget-box-label">Por dia</div><div class="budget-box-val g">' + fmtRval(b.porDia) + '</div><div class="budget-box-sub">' + b.dias + ' dias restantes</div></div>' +
+      primeiroCard +
       '<div class="budget-box"><div class="budget-box-label">Por semana</div><div class="budget-box-val b">' + fmtRval(b.porSemana) + '</div><div class="budget-box-sub">ritmo ideal</div></div>' +
       '<div class="budget-box"><div class="budget-box-label">Por refeição</div><div class="budget-box-val y">' + fmtRval(b.porRefeicao) + '</div><div class="budget-box-sub">3 por dia</div></div>' +
-      '<div class="budget-box"><div class="budget-box-label">Queima atual</div><div class="budget-box-val ' + queimaCor + '">' + fmtRval(b.queimaDiaria) + '</div><div class="budget-box-sub">' + queimaSub + '</div></div>' +
-      '<div class="budget-box"><div class="budget-box-label">Vai sobrar</div><div class="budget-box-val ' + (b.vaiSobrar >= 0 ? 'g' : 'r') + '">' + fmtRval(b.vaiSobrar) + '</div><div class="budget-box-sub">no fim do mês</div></div>' +
-      '<div class="budget-box"><div class="budget-box-label">Gastar sem culpa</div><div class="budget-box-val v">' + fmtRval(b.sobraExtra) + '</div><div class="budget-box-sub">por dia impulso</div></div>' +
+      '<div class="budget-box"><div class="budget-box-label">Já gastei</div><div class="budget-box-val r">' + fmtRval(b.jaGastei) + '</div><div class="budget-box-sub">contas pagas</div></div>' +
+      '<div class="budget-box"><div class="budget-box-label">Falta pagar</div><div class="budget-box-val ' + faltaCor + '">' + fmtRval(b.faltaPagar) + '</div><div class="budget-box-sub">' + faltaSub + '</div></div>' +
+      '<div class="budget-box"><div class="budget-box-label">Status do mês</div><div class="budget-box-val ' + statusCor + '">' + b.statusPct + '%</div><div class="budget-box-sub">' + statusSub + '</div></div>' +
     '</div>';
 }
 
@@ -1275,12 +1340,15 @@ function renderInsights() {
   }
 
   if (S.historico && S.historico.length >= 2) {
-    const h = [...S.historico].filter(x => x.saldo != null).sort((a,b) => (a.ano-b.ano) || (a.mes-b.mes));
+    // Usar saldoBruto com fallback pro saldo (retrocompat com historico v4)
+    const h = [...S.historico].filter(x => (x.saldoBruto != null || x.saldo != null)).sort((a,b) => (a.ano-b.ano) || (a.mes-b.mes));
     if (h.length >= 2) {
       const at = h[h.length-1], an = h[h.length-2];
-      if (at.saldo != null && an.saldo != null) {
-        const d = at.saldo - an.saldo;
-        const pct = an.saldo !== 0 ? Math.round((d / Math.abs(an.saldo)) * 100) : 0;
+      const atSaldo = at.saldoBruto != null ? at.saldoBruto : at.saldo;
+      const anSaldo = an.saldoBruto != null ? an.saldoBruto : an.saldo;
+      if (atSaldo != null && anSaldo != null) {
+        const d = atSaldo - anSaldo;
+        const pct = anSaldo !== 0 ? Math.round((d / Math.abs(anSaldo)) * 100) : 0;
         const up = d >= 0;
         out.push({icon: up?'i-trending-up':'i-trending-down', iconColor: up?'var(--accent-tertiary)':'var(--accent-pink)', iconBg: up?'rgba(6,214,160,.15)':'rgba(239,71,111,.15)', label:'Saldo vs ' + MESES_ABBR[an.mes-1] + '/' + an.ano, value: (up?'+':'') + fmtRS(d), cor: up?'g':'r', sub: pct !== 0 ? (pct>0?'+':'') + pct + '% em relação ao mês anterior' : 'mesmo valor'});
       }
@@ -1294,13 +1362,37 @@ function renderInsights() {
   }
 
   if (S.historico && S.historico.length >= 3) {
-    const h = [...S.historico].filter(x => x.saldo != null && x.entrada != null).sort((a,b) => (a.ano-b.ano) || (a.mes-b.mes)).slice(-3);
+    const h = [...S.historico].filter(x => (x.saldoBruto != null || x.saldo != null) && x.entrada != null).sort((a,b) => (a.ano-b.ano) || (a.mes-b.mes)).slice(-3);
     if (h.length === 3) {
       const me = h.reduce((s,x) => s + x.entrada, 0) / 3;
       const ms = h.reduce((s,x) => s + x.saida, 0) / 3;
-      const msa = h.reduce((s,x) => s + x.saldo, 0) / 3;
+      const msa = h.reduce((s,x) => s + (x.saldoBruto != null ? x.saldoBruto : x.saldo), 0) / 3;
       out.push({icon:'i-activity', iconColor:'var(--accent-purple)', iconBg:'rgba(131,56,236,.15)', label:'Média 3 meses', value: fmtRS(msa) + ' saldo', cor: msa >= 0 ? 'g':'r', sub:'Entradas médias ' + fmtRS(me) + ' · saídas ' + fmtRS(ms)});
     }
+  }
+
+  // Reserva de emergência (sempre mostra, mesmo com 0)
+  const contasFixas = (S.contas || [])
+    .filter(c => c.rec && c.tipo === 'Fixa' && c.valor)
+    .reduce((s, c) => s + (+c.valor), 0);
+  const metaReserva = contasFixas * 6;
+  const reservaAtual = (typeof S.totalInvestido === 'number' ? S.totalInvestido : 0);
+  if (metaReserva > 0 || reservaAtual > 0) {
+    const progresso = metaReserva > 0 ? Math.min(100, (reservaAtual / metaReserva) * 100) : 0;
+    const subMsg = reservaAtual === 0
+      ? 'Começa a acumular no próximo fechamento · meta ' + fmtRS(metaReserva)
+      : progresso.toFixed(1) + '% de ' + fmtRS(metaReserva) + ' · meta 6 meses de contas fixas';
+    out.push({
+      icon: 'i-lock',
+      iconColor: 'var(--accent-purple)',
+      iconBg: 'rgba(131,56,236,.15)',
+      label: 'Reserva de emergência',
+      value: fmtRS(reservaAtual),
+      cor: 'v',
+      sub: subMsg,
+      bar: {fill: progresso, cor: 'v'},
+      acao: '<button type="button" class="gerenciar-btn" style="background:rgba(131,56,236,.12);color:var(--accent-purple);border-color:rgba(131,56,236,.3);margin-top:10px" onclick="openAjustarReserva()">Ajustar reserva</button>'
+    });
   }
 
   if (!out.length) {
@@ -1316,6 +1408,7 @@ function renderInsights() {
         '<div class="insight-value ' + i.cor + '">' + i.value + '</div>' +
         '<div class="insight-sub">' + i.sub + '</div>' +
         (i.bar ? '<div class="insight-bar"><div class="insight-bar-fill" style="width:' + Math.min(100, i.bar.fill) + '%;background:var(--accent-' + corMap[i.bar.cor] + ')"></div></div>' : '') +
+        (i.acao || '') +
       '</div>' +
       '</div>';
   }).join('');
@@ -1327,10 +1420,19 @@ function renderProjecoes() {
   const r = calcResumo();
 
   if (r.ent > 0) {
+    // Projecao agora baseada na MEDIA dos ultimos 3 meses fechados (correcao de bug)
     const restantes = 12 - S.comp.mes + 1;
-    const jaGanhou = (S.historico || []).filter(h => h.ano === S.comp.ano && h.mes < S.comp.mes && h.saldo != null).reduce((s,h) => s + h.saldo, 0);
-    const proj = jaGanhou + (r.saldo * restantes);
-    out.push({icon:'i-trending-up', iconColor:'var(--accent-tertiary)', iconBg:'rgba(6,214,160,.15)', title:'Projeção do ano', sub:'Saldo acumulado em ' + S.comp.ano + ' no ritmo atual', value: fmtRS(proj), cor: proj >= 0 ? 'var(--accent-tertiary)' : 'var(--accent-pink)'});
+    const fechados = (S.historico || []).filter(h =>
+      h.entrada != null && (h.saldoBruto != null || h.saldo != null) &&
+      !(h.ano === S.comp.ano && h.mes === S.comp.mes)
+    ).sort((a,b) => (a.ano-b.ano) || (a.mes-b.mes));
+    if (fechados.length >= 3) {
+      const ult3 = fechados.slice(-3);
+      const mediaSaldo = ult3.reduce((s,h) => s + (h.saldoBruto != null ? h.saldoBruto : h.saldo), 0) / 3;
+      const jaGanhou = (S.historico || []).filter(h => h.ano === S.comp.ano && h.mes < S.comp.mes && (h.saldoBruto != null || h.saldo != null)).reduce((s,h) => s + (h.saldoBruto != null ? h.saldoBruto : h.saldo), 0);
+      const proj = jaGanhou + (mediaSaldo * restantes);
+      out.push({icon:'i-trending-up', iconColor:'var(--accent-tertiary)', iconBg:'rgba(6,214,160,.15)', title:'Projeção do ano', sub:'baseada na média de ' + ult3.length + ' meses fechados', value: fmtRS(proj), cor: proj >= 0 ? 'var(--accent-tertiary)' : 'var(--accent-pink)'});
+    }
   }
 
   const parc = S.contas.filter(c => c.parcela && c.parcela !== 'N/A' && c.parcela !== 'Acumulado' && c.parcela.includes('/'));
@@ -1360,13 +1462,13 @@ function renderProjecoes() {
     out.push({icon:'i-lock', iconColor:'var(--accent-purple)', iconBg:'rgba(131,56,236,.15)', title:'Comprometimento fixo', sub: fixRec.length + ' recorrentes ' + fmtRS(tot) + '/mês', value: pct + '%', cor: pct > 80 ? 'var(--accent-pink)' : (pct > 60 ? 'var(--accent-secondary)' : 'var(--accent-tertiary)')});
   }
 
-  if (r.ent > 0 && r.saldo > 0) {
-    const p = perfilInvestimento(r.saldo);
-    const m = r.saldo * p.pct;
-    const taxa = 0.008;
+  if (r.ent > 0 && r.investimento > 0) {
+    // Usa investimento obrigatorio do mes. Taxa atualizada para ~CDI 2026
+    const m = r.investimento;
+    const taxa = 0.0095; // 0.95% ao mes = ~12% a.a.
     let total = 0;
     for (let i = 0; i < 12; i++) total = (total + m) * (1 + taxa);
-    out.push({icon:'i-diamond', iconColor:'var(--accent-secondary)', iconBg:'rgba(255,200,87,.15)', title:'Investindo 12 meses', sub: fmtRS(m) + '/mês perfil ' + p.perfil + ' rendendo CDI', value: fmtRS(total), cor:'var(--accent-secondary)'});
+    out.push({icon:'i-diamond', iconColor:'var(--accent-secondary)', iconBg:'rgba(255,200,87,.15)', title:'Investindo 12 meses', sub: fmtRS(m) + '/mês obrigatório rendendo ~CDI', value: fmtRS(total), cor:'var(--accent-secondary)'});
   }
 
   if (!out.length) {
@@ -1386,10 +1488,10 @@ function renderGrafico() {
     el.innerHTML = '<div class="empty">Feche 2+ meses para ver a evolução.</div>';
     return;
   }
-  const max = Math.max(...h.flatMap(x => [x.entrada||0, x.saida||0, Math.abs(x.saldo||0)]));
+  const max = Math.max(...h.flatMap(x => [x.entrada||0, x.saida||0, Math.abs((x.saldoBruto != null ? x.saldoBruto : x.saldo)||0)]));
   if (max === 0) { el.innerHTML = '<div class="empty">Sem valores para plotar.</div>'; return; }
   const bars = h.map(x => {
-    const ent = x.entrada || 0, sai = x.saida || 0, sal = Math.abs(x.saldo || 0);
+    const ent = x.entrada || 0, sai = x.saida || 0, sal = Math.abs((x.saldoBruto != null ? x.saldoBruto : x.saldo) || 0);
     const cur = x.mes === S.comp.mes && x.ano === S.comp.ano;
     return '<div class="graf-col' + (cur?' cur':'') + '">' +
       '<div class="graf-bar-group">' +
@@ -1640,6 +1742,99 @@ async function doPostergar() {
   toast('"' + c.nome + '" postergada');
 }
 
+
+// ═══════════════════════════════════════════════════════════════════════
+// AJUSTE DA RESERVA DE EMERGENCIA
+// ═══════════════════════════════════════════════════════════════════════
+let _tipoAjusteAtivo = null;
+
+function openAjustarReserva() {
+  _tipoAjusteAtivo = null;
+  const atual = (typeof S.totalInvestido === 'number' ? S.totalInvestido : 0);
+  document.getElementById('ar-saldo-atual').textContent = fmtRS(atual);
+  document.getElementById('ar-opcoes').style.display = 'flex';
+  document.getElementById('ar-form').style.display = 'none';
+  document.getElementById('ar-valor').value = '';
+  document.getElementById('ar-motivo').value = '';
+  document.getElementById('ar-preview').style.display = 'none';
+  openM('m-ajuste-reserva');
+}
+
+function selectTipoAjuste(tipo) {
+  _tipoAjusteAtivo = tipo;
+  const cfg = {
+    aporte:   {labelValor: 'Quanto você adicionou?',    labelMotivo: 'Motivo (opcional)',    motivoPh: 'ex: 13º, freela, restituição', btn: 'Adicionar à reserva',    btnCls: 'mbtn-primary',  motivoObrig: false},
+    saque:    {labelValor: 'Quanto você sacou?',        labelMotivo: 'Motivo (obrigatório)', motivoPh: 'ex: carro quebrou, remédio',    btn: 'Registrar saque',         btnCls: 'mbtn-primary',  motivoObrig: true},
+    corrigir: {labelValor: 'Quanto tem de verdade?',    labelMotivo: 'Observação (opcional)',motivoPh: 'ex: rendimentos do CDB',        btn: 'Confirmar correção',      btnCls: 'mbtn-primary',  motivoObrig: false}
+  };
+  const c = cfg[tipo];
+  document.getElementById('ar-label-valor').textContent = c.labelValor;
+  document.getElementById('ar-label-motivo').textContent = c.labelMotivo;
+  document.getElementById('ar-motivo').placeholder = c.motivoPh;
+  const btn = document.getElementById('ar-btn-confirmar');
+  btn.textContent = c.btn;
+  btn.className = 'mbtn ' + c.btnCls;
+  document.getElementById('ar-opcoes').style.display = 'none';
+  document.getElementById('ar-form').style.display = 'flex';
+  document.getElementById('ar-valor').focus();
+  // Preview dinamico para corrigir
+  const inp = document.getElementById('ar-valor');
+  inp.oninput = () => atualizarPreviewAjuste();
+  atualizarPreviewAjuste();
+}
+
+function atualizarPreviewAjuste() {
+  const prev = document.getElementById('ar-preview');
+  const valor = +document.getElementById('ar-valor').value || 0;
+  const atual = (typeof S.totalInvestido === 'number' ? S.totalInvestido : 0);
+  if (!_tipoAjusteAtivo || valor <= 0) { prev.style.display = 'none'; return; }
+  if (_tipoAjusteAtivo === 'aporte') {
+    prev.innerHTML = '<strong>Novo saldo:</strong> ' + fmtRS(atual + valor) + ' <span style="color:var(--accent-tertiary)">(+' + fmtRS(valor) + ')</span>';
+    prev.style.display = 'block';
+  } else if (_tipoAjusteAtivo === 'saque') {
+    const novo = atual - valor;
+    const alerta = novo < 0 ? '<br><span style="color:var(--accent-pink);font-weight:700">⚠ Isso vai deixar a reserva negativa.</span>' : '';
+    prev.innerHTML = '<strong>Novo saldo:</strong> ' + fmtRS(novo) + ' <span style="color:var(--accent-primary)">(-' + fmtRS(valor) + ')</span>' + alerta;
+    prev.style.display = 'block';
+  } else if (_tipoAjusteAtivo === 'corrigir') {
+    const dif = valor - atual;
+    const sig = dif >= 0 ? '+' : '';
+    const cor = dif >= 0 ? 'var(--accent-tertiary)' : 'var(--accent-pink)';
+    prev.innerHTML = '<strong>Diferença:</strong> <span style="color:' + cor + '">' + sig + fmtRS(dif) + '</span>';
+    prev.style.display = 'block';
+  }
+}
+
+function voltarAjusteReserva() {
+  document.getElementById('ar-opcoes').style.display = 'flex';
+  document.getElementById('ar-form').style.display = 'none';
+  _tipoAjusteAtivo = null;
+}
+
+async function confirmarAjusteReserva() {
+  const valor = +document.getElementById('ar-valor').value || 0;
+  const motivo = document.getElementById('ar-motivo').value.trim();
+  if (!_tipoAjusteAtivo) { toast('Selecione uma opção'); return; }
+  if (valor <= 0) { toast('Valor inválido'); return; }
+  if (_tipoAjusteAtivo === 'saque' && !motivo) { toast('Informe o motivo do saque'); return; }
+  if (typeof S.totalInvestido !== 'number') S.totalInvestido = 0;
+  if (_tipoAjusteAtivo === 'aporte') {
+    S.totalInvestido = +(S.totalInvestido + valor).toFixed(2);
+    addLog('Reserva +' + fmtRS(valor) + (motivo ? ' (' + motivo + ')' : ''), 'g');
+  } else if (_tipoAjusteAtivo === 'saque') {
+    S.totalInvestido = +(S.totalInvestido - valor).toFixed(2);
+    addLog('Reserva -' + fmtRS(valor) + ' (' + motivo + ')', 'o');
+  } else if (_tipoAjusteAtivo === 'corrigir') {
+    const dif = valor - S.totalInvestido;
+    S.totalInvestido = +valor.toFixed(2);
+    addLog('Reserva corrigida: ' + (dif >= 0 ? '+' : '') + fmtRS(dif) + (motivo ? ' (' + motivo + ')' : ''), 'v');
+  }
+  closeM('m-ajuste-reserva');
+  await saveState();
+  renderAll();
+  toast('Reserva ajustada');
+}
+
 // ═══════════════════════════════════════════════════════════════════════
 // AÇÕES — ENTRADAS
 // ═══════════════════════════════════════════════════════════════════════
@@ -1748,9 +1943,22 @@ async function doFecharMes() {
   hideConfirmFechar();
   const r = calcResumo(), c0 = S.comp;
   const idx = S.historico.findIndex(h => h.mes === c0.mes && h.ano === c0.ano);
-  const reg = {mes:c0.mes, ano:c0.ano, entrada:+r.ent.toFixed(2), saida:+r.despesas.toFixed(2), saldo:+r.saldo.toFixed(2)};
+  const reg = {
+    mes: c0.mes, ano: c0.ano,
+    entrada: +r.ent.toFixed(2),
+    saida: +r.despesas.toFixed(2),
+    saldo: +r.saldo.toFixed(2),        // liquido (apos investimento) — nova semantica
+    saldoBruto: +r.saldoBruto.toFixed(2), // bruto — novo campo
+    investimento: +r.investimento.toFixed(2) // valor reservado no mes — novo campo
+  };
   if (idx >= 0) S.historico[idx] = reg;
   else S.historico.push(reg);
+  // Acumular reserva
+  if (r.investimento > 0) {
+    if (typeof S.totalInvestido !== 'number') S.totalInvestido = 0;
+    S.totalInvestido = +(S.totalInvestido + r.investimento).toFixed(2);
+    addLog('Reserva +' + fmtRS(r.investimento) + ' (fechamento)', 'g');
+  }
   let nm = c0.mes + 1, na = c0.ano;
   if (nm > 12) { nm = 1; na++; }
   S.comp = {mes: nm, ano: na};
@@ -1799,7 +2007,7 @@ async function doReset() {
   const m = +document.getElementById('r-mes').value;
   const a = +document.getElementById('r-ano').value;
   if (!m || !a || a < 2020 || a > 2099) { toast('Mês/ano inválido'); return; }
-  S = {comp:{mes:m, ano:a}, entradasList:[], contas:[], historico:[], log:[], nomesUsados:[]};
+  S = {comp:{mes:m, ano:a}, entradasList:[], contas:[], historico:[], log:[], nomesUsados:[], totalInvestido:0};
   addLog('Sistema resetado, início ' + m + '/' + a, 'v');
   filtroAtivo = 'todas';
   closeM('m-reset');

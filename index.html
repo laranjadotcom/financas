@@ -192,22 +192,6 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .note{font-size:12px;color:var(--sub);background:var(--surface2);padding:11px 13px;border-radius:var(--r-xs);line-height:1.6;border:1px solid var(--border)}
 .note strong{color:var(--text)}
 
-/* ── LOGIN SCREEN ── */
-#login-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:center;justify-content:center;padding:20px;padding-top:calc(20px + var(--safe-top));padding-bottom:calc(20px + var(--safe-bot))}
-#login-screen.show{display:flex}
-.login-card{width:100%;max-width:400px;padding:36px 28px;text-align:center}
-.login-icon{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,var(--blue),var(--violet));display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 18px;box-shadow:0 10px 30px rgba(96,165,250,.3)}
-.login-title{font-size:22px;font-weight:700;margin-bottom:4px}
-.login-sub{font-size:13px;color:var(--sub);margin-bottom:32px}
-.login-form{display:flex;flex-direction:column;gap:14px}
-.pwd-wrap{position:relative}
-.pwd-wrap input{width:100%;padding-right:44px;font-size:17px;text-align:center;letter-spacing:2px}
-.pwd-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--sub);padding:4px}
-.err-msg{font-size:13px;color:var(--red);background:var(--red-bg);padding:10px 14px;border-radius:var(--r-xs);display:none;text-align:center}
-.err-msg.show{display:block}
-@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
-.shake{animation:shake .4s ease}
-
 /* ── BACKUP LIST ── */
 .bk-item{display:flex;align-items:center;gap:10px;padding:12px;border-radius:var(--r-xs);border:1px solid var(--border);background:var(--surface2);margin-bottom:8px}
 .bk-item.selected{background:var(--violet-bg);border-color:var(--violet)}
@@ -242,9 +226,6 @@ input.invalid,select.invalid{border-color:var(--red)!important;background:var(--
 .field-err{display:none;color:var(--red);font-size:11px;margin-top:4px;font-weight:500}
 .field-err.show{display:block}
 
-/* app version badge */
-.app-version{margin-top:18px;text-align:center;font-size:10px;color:var(--muted);letter-spacing:.5px;font-family:'SF Mono',Menlo,monospace;opacity:.7}
-
 .contas-btn{width:100%;padding:18px;border-radius:var(--r);background:linear-gradient(135deg,rgba(96,165,250,.15),rgba(167,139,250,.15));border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:transform .1s;color:var(--text);font-family:inherit}
 .contas-btn:active{transform:scale(.98)}
 .contas-btn-left{display:flex;align-items:center;gap:12px}
@@ -270,26 +251,6 @@ input.invalid,select.invalid{border-color:var(--red)!important;background:var(--
 </style>
 </head>
 <body>
-
-<!-- ══════════════════ LOGIN ══════════════════ -->
-<div id="login-screen">
-  <div class="login-card">
-    <div class="login-icon">🔐</div>
-    <div class="login-title">Controle Financeiro</div>
-    <div class="login-sub">Digite sua senha para acessar</div>
-    <div class="login-form">
-      <div class="fgrp">
-        <div class="pwd-wrap">
-          <input type="password" id="l-senha" placeholder="••••••" autocomplete="current-password" inputmode="numeric">
-          <button class="pwd-eye" type="button" data-act="toggleEye" data-target="l-senha">👁</button>
-        </div>
-      </div>
-      <div class="err-msg" id="login-err">Senha incorreta. Tente novamente.</div>
-      <button class="mbtn mbtn-primary" id="btn-login" style="padding:13px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--blue),var(--violet))" data-act="doLogin">Entrar</button>
-    </div>
-    <div class="app-version" id="app-version" aria-label="Versão do app"></div>
-  </div>
-</div>
 
 <!-- ══════════════════ MODAIS ══════════════════ -->
 
@@ -334,9 +295,7 @@ input.invalid,select.invalid{border-color:var(--red)!important;background:var(--
       <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500" data-act="menuFechar">📅&nbsp;&nbsp;Fechar Mês</button>
       <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500" data-act="menuBackups">💾&nbsp;&nbsp;Gerenciar Backups</button>
       <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500" data-act="menuExport">📤&nbsp;&nbsp;Exportar CSV</button>
-      <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500" data-act="menuSenha">🔑&nbsp;&nbsp;Alterar Senha</button>
       <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500;color:var(--red)" data-act="menuReset">🗑️&nbsp;&nbsp;Resetar Sistema</button>
-      <button class="mbtn mbtn-ghost" style="padding:14px;text-align:left;font-size:15px;font-weight:500" data-act="menuLogout">🚪&nbsp;&nbsp;Sair</button>
     </div>
   </div>
 </div>
@@ -426,21 +385,6 @@ input.invalid,select.invalid{border-color:var(--red)!important;background:var(--
       <input type="hidden" id="po-id">
       <div class="note">A conta vira <strong>Postergada</strong> e sai do saldo deste mês. Uma cópia com valor corrigido vai para o próximo mês. Se pagar a original antes de fechar, a cópia é cancelada.</div>
       <div class="modal-acts"><button class="mbtn mbtn-ghost" data-act="closeM">Cancelar</button><button class="mbtn" style="background:var(--orange);color:#fff" data-primary="1" data-act="doPostergar">Postergar</button></div>
-    </div>
-  </div>
-</div>
-
-<!-- Senha -->
-<div class="overlay" id="m-pwd">
-  <div class="modal">
-    <div class="modal-grab"></div>
-    <div class="modal-head"><span class="modal-title">🔑 Alterar Senha</span><button class="modal-x" data-act="closeM">✕</button></div>
-    <div class="mform">
-      <div class="fgrp"><label>Senha atual</label><div class="pwd-wrap"><input type="password" id="pwd-atual" placeholder="Senha atual" inputmode="numeric"><button class="pwd-eye" type="button" data-act="toggleEye" data-target="pwd-atual">👁</button></div></div>
-      <div class="fgrp"><label>Nova senha (mínimo 4 caracteres)</label><div class="pwd-wrap"><input type="password" id="pwd-nova" placeholder="Nova senha" inputmode="numeric"><button class="pwd-eye" type="button" data-act="toggleEye" data-target="pwd-nova">👁</button></div><div class="field-err" id="err-pwd-nova"></div></div>
-      <div class="fgrp"><label>Confirmar nova senha</label><div class="pwd-wrap"><input type="password" id="pwd-conf" placeholder="Repita a nova senha" inputmode="numeric"><button class="pwd-eye" type="button" data-act="toggleEye" data-target="pwd-conf">👁</button></div><div class="field-err" id="err-pwd-conf"></div></div>
-      <div class="err-msg" id="pwd-err"></div>
-      <div class="modal-acts"><button class="mbtn mbtn-ghost" data-act="closeM">Cancelar</button><button class="mbtn mbtn-primary" data-primary="1" data-act="doChangePwd">Salvar</button></div>
     </div>
   </div>
 </div>
@@ -597,8 +541,7 @@ input.invalid,select.invalid{border-color:var(--red)!important;background:var(--
 //   CONTROLE FINANCEIRO — iOS Edition · IndexedDB + Single File
 // ═══════════════════════════════════════════════════════════════════════════
 
-const APP_VERSION = 'v5.0';
-const APP_BUILD = '2026-04-17';
+const APP_VERSION = 'v5.1';
 const DB_NAME = 'cfp_db_v2';
 const DB_VER = 1;
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -686,73 +629,15 @@ async function saveState() {
   await idbPut('state', {id: 1, data: S});
 }
 
-// ─── Senha (PBKDF2 + salt, com migração automática do SHA-256 legado) ─
-function bufToHex(buf) {
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-function hexToBuf(hex) {
-  const arr = new Uint8Array(hex.length/2);
-  for (let i=0; i<arr.length; i++) arr[i] = parseInt(hex.substr(i*2,2),16);
-  return arr.buffer;
-}
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return bufToHex(buf);
-}
-async function pbkdf2Hash(pwd, saltBuf, iter) {
-  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pwd), {name:'PBKDF2'}, false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits({name:'PBKDF2', salt: saltBuf, iterations: iter, hash: 'SHA-256'}, key, 256);
-  return bufToHex(bits);
-}
-
-async function getSavedPwd() {
-  const row = await idbGet('config', 'pwd');
-  return row ? row.value : null;
-}
-
-async function setPwdHash(pwd) {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iter = 150000;
-  const hash = await pbkdf2Hash(pwd, salt.buffer, iter);
-  await idbPut('config', {key: 'pwd', value: {algo:'pbkdf2', salt: bufToHex(salt), iter, hash}});
-}
-
-async function verificaSenha(senha) {
-  const saved = await getSavedPwd();
-  if (!saved) return false;
-  if (typeof saved === 'object' && saved.algo === 'pbkdf2') {
-    const h = await pbkdf2Hash(senha, hexToBuf(saved.salt), saved.iter);
-    return h === saved.hash;
-  }
-  if (typeof saved === 'string') {
-    const h = await sha256(senha);
-    if (h === saved) { await setPwdHash(senha); return true; }
-    return false;
-  }
-  return false;
-}
-
 // ─── INIT ─────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
   try {
-    const vEl = document.getElementById('app-version');
-    if (vEl) vEl.textContent = APP_VERSION + ' · ' + APP_BUILD;
     db = await openDB();
-    // Seed senha padrão se não existir
-    const pwd = await getSavedPwd();
-    if (!pwd) await setPwdHash('1234');
-
-    // Verifica se já autenticou nesta sessão
-    if (sessionStorage.getItem('cfp_auth') === 'ok') {
-      await loadState();
-      showApp();
-      await triggerDailyBackup();
-    } else {
-      document.getElementById('login-screen').classList.add('show');
-      const inp = document.getElementById('l-senha');
-      inp.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
-      setTimeout(() => inp.focus(), 300);
-    }
+    // Limpeza one-shot: hash de senha legado (v5.0 e anteriores)
+    try { await idbDelete('config', 'pwd'); } catch {}
+    await loadState();
+    showApp();
+    await triggerDailyBackup();
 
     // Mostra dica de instalação se no Safari iOS e não em PWA
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -820,39 +705,9 @@ function renderContasBtn() {
 }
 
 function showApp() {
-  document.getElementById('login-screen').classList.remove('show');
   document.getElementById('topbar').style.display = '';
   document.getElementById('main-page').style.display = '';
   renderAll();
-}
-
-async function doLogin() {
-  const senha = document.getElementById('l-senha').value;
-  const btn = document.getElementById('btn-login');
-  btn.disabled = true; btn.textContent = 'Verificando…';
-  try {
-    if (await verificaSenha(senha)) {
-      sessionStorage.setItem('cfp_auth', 'ok');
-      document.getElementById('login-err').classList.remove('show');
-      await loadState();
-      showApp();
-      await triggerDailyBackup();
-    } else {
-      document.getElementById('login-err').classList.add('show');
-      const inp = document.getElementById('l-senha');
-      inp.value = '';
-      inp.classList.add('shake');
-      setTimeout(() => inp.classList.remove('shake'), 400);
-      inp.focus();
-    }
-  } finally {
-    btn.disabled = false; btn.textContent = 'Entrar';
-  }
-}
-
-function doLogout() {
-  sessionStorage.removeItem('cfp_auth');
-  location.reload();
 }
 
 // ─── Backup diário automático ─────────────────────────────
@@ -901,10 +756,8 @@ function fmtR(v) { if(v==null||isNaN(+v)) return '<span class="na">N/A</span>'; 
 function fmtRS(v) { if(v==null||isNaN(+v)) return 'N/A'; return 'R$\u00A0' + (+v).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
 function fmtD(d) { if(!d) return '<span class="na">sem data</span>'; const p=String(d).split('-'); return p.length===3 ? esc(p[2]+'/'+p[1]) : esc(d); }
 function compStr(c) { return MESES[c.mes-1] + ' ' + c.ano; }
-function compBadge(c) { return MESES[c.mes-1] + ' · ' + c.ano; }
 function addLog(msg, cor='g') { if(!S.log) S.log=[]; S.log.unshift({msg,cor,ts:nowTime()}); if(S.log.length>20) S.log=S.log.slice(0,20); }
 function toast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
-function toggleEye(id,btn) { const i=document.getElementById(id); i.type=i.type==='password'?'text':'password'; btn.textContent=i.type==='password'?'👁':'🙈'; }
 function openM(id) { document.getElementById(id).classList.add('open'); }
 function closeM(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
@@ -971,7 +824,7 @@ function setFiltro(f, btn) {
 function renderAll() {
   if (!S) return;
   if (S.sortCol) { sortCol = S.sortCol; sortDir = S.sortDir || 'asc'; }
-  document.getElementById('badge-comp').textContent = compBadge(S.comp);
+  document.getElementById('badge-comp').textContent = APP_VERSION;
   renderContasBtn();
   renderTabela();
   renderResumo();
@@ -1310,26 +1163,6 @@ async function fecharMes() {
   toast('Mês fechado!');
 }
 
-// ─── Senha ────────────────────────────────────────────────
-async function doChangePwd() {
-  const atual = document.getElementById('pwd-atual').value;
-  const nova = document.getElementById('pwd-nova').value;
-  const conf = document.getElementById('pwd-conf').value;
-  const err = document.getElementById('pwd-err');
-  err.classList.remove('show');
-  if (!atual) { err.textContent='Informe a senha atual.'; err.classList.add('show'); return; }
-  if (nova.length<4) { err.textContent='Nova senha deve ter ao menos 4 caracteres.'; err.classList.add('show'); return; }
-  if (nova!==conf) { err.textContent='As senhas não coincidem.'; err.classList.add('show'); return; }
-  if (!(await verificaSenha(atual))) { err.textContent='Senha atual incorreta.'; err.classList.add('show'); return; }
-  await setPwdHash(nova);
-  ['pwd-atual','pwd-nova','pwd-conf'].forEach(i => document.getElementById(i).value = '');
-  closeM('m-pwd');
-  toast('Senha alterada com sucesso!');
-  addLog('Senha alterada', 'b');
-  await saveState();
-  renderAll();
-}
-
 // ─── Reset ────────────────────────────────────────────────
 async function doReset() {
   const m = +document.getElementById('r-mes').value;
@@ -1560,17 +1393,6 @@ function validateVenc(id) {
   if (!dt) { setFieldError(id, 'Data inválida.'); return false; }
   setFieldError(id, null); return true;
 }
-function validatePwdNova() {
-  const v = document.getElementById('pwd-nova').value;
-  if (!v) { setFieldError('pwd-nova', null); setFieldError('pwd-conf', null); return false; }
-  if (v.length < 4) { setFieldError('pwd-nova', 'Mínimo 4 caracteres.'); return false; }
-  setFieldError('pwd-nova', null);
-  const conf = document.getElementById('pwd-conf').value;
-  if (conf && conf !== v) { setFieldError('pwd-conf', 'Senhas não coincidem.'); return false; }
-  setFieldError('pwd-conf', null);
-  return true;
-}
-
 function bindValidations() {
   const bind = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('input', fn); };
   bind('a-nome',   () => validateNome('a-nome'));
@@ -1580,8 +1402,6 @@ function bindValidations() {
   bind('ee-valor', () => validateValor('ee-valor', {required:true}));
   bind('ed-valor', () => validateValor('ed-valor', {required:true}));
   bind('ed-venc',  () => validateVenc('ed-venc'));
-  bind('pwd-nova', validatePwdNova);
-  bind('pwd-conf', validatePwdNova);
 }
 
 // ─── Event delegation (substitui onclick inline) ──────────
@@ -1593,8 +1413,6 @@ function setFiltroEl(el) {
 }
 
 const ACTIONS = {
-  doLogin:       () => doLogin(),
-  doLogout:      () => doLogout(),
   doAddConta:    () => doAddConta(),
   doEntrada:     () => doEntrada(),
   doEditEntrada: () => doEditEntrada(),
@@ -1602,7 +1420,6 @@ const ACTIONS = {
   doPagar:       () => doPagar(),
   doEdit:        () => doEdit(),
   doPostergar:   () => doPostergar(),
-  doChangePwd:   () => doChangePwd(),
   doReset:       () => doReset(),
   fecharMes:     () => fecharMes(),
   showFechar:    () => showConfirmFechar(),
@@ -1626,13 +1443,10 @@ const ACTIONS = {
   closeM:        el => { const ov = el.closest('.overlay'); if (ov) closeM(ov.id); },
   filter:        el => setFiltroEl(el),
   sort:          el => sortBy(el.dataset.s),
-  toggleEye:     el => toggleEye(el.dataset.target, el),
   menuFechar:    () => { closeM('m-menu'); setTimeout(showConfirmFechar, 300); },
   menuBackups:   () => { closeM('m-menu'); setTimeout(openBackupManager, 300); },
   menuExport:    () => { closeM('m-menu'); setTimeout(openExportDialog, 300); },
-  menuSenha:     () => { closeM('m-menu'); setTimeout(() => openM('m-pwd'), 300); },
   menuReset:     () => { closeM('m-menu'); setTimeout(() => openM('m-reset'), 300); },
-  menuLogout:    () => { closeM('m-menu'); setTimeout(doLogout, 300); },
   hideHint:      () => { const el = document.getElementById('install-hint'); if (el) el.classList.remove('show'); localStorage.setItem('cfp_hint_shown','1'); },
 };
 
